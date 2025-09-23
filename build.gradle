@@ -1,0 +1,95 @@
+import static java.nio.charset.StandardCharsets.UTF_8
+
+plugins {
+    id 'java-library'
+    id 'signing'
+    alias libs.plugins.publish
+}
+
+group = 'io.github.honhimw'
+version = libs.versions.version.get()
+description = 'ddl generator for jimmer'
+
+def title = 'DDL generation for jimmer'
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+tasks.withType(JavaCompile).configureEach {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+    options.encoding = UTF_8.name()
+    inputs.files(tasks.withType(ProcessResources))
+    options.compilerArgs << "-Xlint:deprecation"
+//    options.compilerArgs << "-Werror" << "-Xlint:deprecation" << "-Xlint:unchecked"
+}
+
+dependencies {
+    compileOnly(platform(libs.jimmer.bom))
+
+    compileOnly 'org.babyfish.jimmer:jimmer-sql'
+    compileOnly libs.jspecify
+    compileOnly libs.slf4j
+
+    testImplementation libs.h2
+    testImplementation(platform(libs.jimmer.bom))
+    testAnnotationProcessor(platform(libs.jimmer.bom))
+    testImplementation 'org.babyfish.jimmer:jimmer-sql'
+    testImplementation libs.jspecify
+
+    testAnnotationProcessor 'org.babyfish.jimmer:jimmer-apt'
+
+    testImplementation platform('org.junit:junit-bom:5.13.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'org.junit.platform:junit-platform-engine'
+    testImplementation 'org.junit.platform:junit-platform-launcher'
+
+}
+
+test {
+    useJUnitPlatform()
+}
+
+mavenPublishing {
+    publishToMavenCentral()
+    signAllPublications()
+
+    coordinates(group as String, name, version as String)
+
+    pom {
+        name = title
+        description = project.description
+        url = 'https://github.com/honhimW/jimmer-ddl'
+        licenses {
+            license {
+                name = 'The Apache License, Version 2.0'
+                url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                distribution = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+            }
+        }
+        developers {
+            developer {
+                id = 'honhimw'
+                name = 'honhimw'
+                url = 'https://honhimW.github.io'
+                email = 'honhimw@outlook.com'
+            }
+        }
+        scm {
+            url = 'https://github.com/honhimW/jimmer-ddl'
+            connection = 'scm:git:git://github.com/honhimW/jimmer-ddl.git'
+            developerConnection = 'scm:git:ssh://github.com/honhimW/jimmer-ddl.git'
+        }
+    }
+
+}
+
+jar {
+    enabled(true)
+}

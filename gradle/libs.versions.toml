@@ -1,0 +1,27 @@
+[versions]
+version = "0.0.1-RC.0"
+slf4j = "2.0.17"
+jspecify = "1.0.0"
+jimmer-bom = "0.9.110"
+h2 = "2.3.232"
+central-publish = "0.34.0"
+
+[libraries.slf4j]
+module = "org.slf4j:slf4j-api"
+version.ref = "slf4j"
+
+[libraries.jspecify]
+module = "org.jspecify:jspecify"
+version.ref = "jspecify"
+
+[libraries.jimmer-bom]
+module = "org.babyfish.jimmer:jimmer-bom"
+version.ref = "jimmer-bom"
+
+[libraries.h2]
+module = "com.h2database:h2"
+version.ref = "h2"
+
+[plugins.publish]
+id = "com.vanniktech.maven.publish"
+version.ref = "central-publish"
