@@ -1,5 +1,5 @@
 [versions]
-version = "0.0.1-RC.0"
+version = "0.0.1"
 slf4j = "2.0.17"
 jspecify = "1.0.0"
 jimmer-bom = "0.9.110"
