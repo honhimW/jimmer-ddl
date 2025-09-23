@@ -1,6 +1,6 @@
 # Jimmer ddl generator
 
-> ![note]  
+> [!note]  
 > unofficial maintain implementation
 
 ### Usage
