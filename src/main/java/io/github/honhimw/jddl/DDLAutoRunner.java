@@ -4,6 +4,7 @@ import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 
 import java.sql.PreparedStatement;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,7 +29,7 @@ public class DDLAutoRunner {
     public DDLAutoRunner(JSqlClientImplementor client, DDLAuto ddlAuto, List<ImmutableType> types) {
         this.client = client;
         this.ddlAuto = ddlAuto;
-        this.types = types;
+        this.types = new ArrayList<>(types);
     }
 
     public void init() {

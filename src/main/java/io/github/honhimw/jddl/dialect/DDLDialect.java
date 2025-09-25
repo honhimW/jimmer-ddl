@@ -180,7 +180,7 @@ public interface DDLDialect extends Dialect {
         return "";
     }
 
-    int resolveJdbcType(Class<?> type, EnumType.Strategy strategy);
+    int resolveJdbcType(Class<?> type, EnumType.@Nullable Strategy strategy);
 
     /**
      * if not blank using in column definition, otherwise using{@link #resolveJdbcType(Class, EnumType.Strategy)}

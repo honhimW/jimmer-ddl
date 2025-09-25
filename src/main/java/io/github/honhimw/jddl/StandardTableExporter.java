@@ -111,7 +111,7 @@ public class StandardTableExporter implements Exporter<ImmutableType> {
     private void applyComments(BufferContext bufferContext, List<String> statements) {
         if (dialect.supportsCommentOn()) {
             String comment = bufferContext.getTableDef().map(TableDef::comment).orElse("");
-            if (comment.isEmpty() && dialect.getTableComment("").isEmpty()) {
+            if (!comment.isEmpty() && dialect.getTableComment("").isEmpty()) {
                 statements.add(String.format("comment on table %s is '%s'", bufferContext.tableName, comment));
             }
             statements.addAll(bufferContext.commentStatements);

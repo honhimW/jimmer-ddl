@@ -5,6 +5,7 @@ import io.github.honhimw.jddl.dialect.DDLDialect;
 import org.babyfish.jimmer.meta.ImmutableProp;
 import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.meta.TargetLevel;
+import org.babyfish.jimmer.sql.EnumType;
 import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.dialect.Dialect;
 import org.babyfish.jimmer.sql.dialect.OracleDialect;
@@ -56,7 +57,8 @@ public abstract class AbstractDDLTest {
             if (prop.isReference(TargetLevel.PERSISTENT)) {
                 prop = prop.getTargetType().getIdProp();
             }
-            int jdbcType = ddlDialect.resolveJdbcType(prop.getReturnClass(), DDLUtils.resolveEnum(getSqlClient(), prop));
+            EnumType.Strategy strategy = DDLUtils.resolveEnum(getSqlClient(), prop);
+            int jdbcType = ddlDialect.resolveJdbcType(prop.getReturnClass(), strategy);
             ColumnDef annotation = prop.getAnnotation(ColumnDef.class);
             if (annotation != null && annotation.jdbcType() != Types.OTHER) {
                 jdbcType = annotation.jdbcType();
@@ -68,7 +70,7 @@ public abstract class AbstractDDLTest {
             jdbcType = adjustJdbcType(jdbcType);
 
             if (jdbcType == Types.OTHER) {
-                String sqlType = ddlDialect.resolveSqlType(prop.getReturnClass(), DDLUtils.resolveEnum(getSqlClient(), prop));
+                String sqlType = ddlDialect.resolveSqlType(prop.getReturnClass(), strategy);
                 if (annotation != null && !annotation.sqlType().isEmpty()) {
                     sqlType = annotation.sqlType();
                 }

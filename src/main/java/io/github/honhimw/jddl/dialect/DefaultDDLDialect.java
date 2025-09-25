@@ -12,7 +12,7 @@ import org.babyfish.jimmer.sql.dialect.PaginationContext;
 import org.babyfish.jimmer.sql.dialect.UpdateJoin;
 import org.babyfish.jimmer.sql.runtime.JdbcTypes;
 import org.babyfish.jimmer.sql.runtime.Reader;
-import org.jetbrains.annotations.Nullable;
+import org.jspecify.annotations.Nullable;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -26,7 +26,7 @@ import static java.sql.Types.*;
  * @author honhimW
  */
 
-public abstract class DefaultDDLDialect implements Dialect, DDLDialect {
+public abstract class DefaultDDLDialect implements DDLDialect {
 
     protected final Dialect dialect;
 
@@ -38,23 +38,15 @@ public abstract class DefaultDDLDialect implements Dialect, DDLDialect {
 
     protected DefaultDDLDialect(Dialect dialect, final DatabaseVersion version) {
         this.dialect = dialect;
-        this.version = version;
+        this.version = version == null ? DatabaseVersion.LATEST : version;
     }
 
     protected boolean isSameOrAfter(int major) {
-        if (this.version == null) {
-            return true;
-        } else {
-            return this.version.isSameOrAfter(major);
-        }
+        return this.version.isSameOrAfter(major);
     }
 
     protected boolean isSameOrAfter(int major, int minor) {
-        if (this.version == null) {
-            return true;
-        } else {
-            return this.version.isSameOrAfter(major, minor);
-        }
+        return this.version.isSameOrAfter(major, minor);
     }
 
     @Override
@@ -132,8 +124,8 @@ public abstract class DefaultDDLDialect implements Dialect, DDLDialect {
     }
 
     @Override
-    public int resolveJdbcType(Class<?> sqlType, EnumType.Strategy strategy) {
-        if (sqlType.isEnum()) {
+    public int resolveJdbcType(Class<?> sqlType, EnumType.@Nullable Strategy strategy) {
+        if (sqlType.isEnum() && strategy != null) {
             switch (strategy) {
                 case NAME:
                     return Types.VARCHAR;

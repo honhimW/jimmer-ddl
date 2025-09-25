@@ -45,26 +45,26 @@ public class StandardForeignKeyExporter implements Exporter<ForeignKey> {
         if (!dialect.hasAlterTable()) {
             return Collections.emptyList();
         }
+        BufferContext bufferContext = new BufferContext(this.client, exportable.table);
         String sourceTableName = exportable.table.getTableName(client.getMetadataStrategy());
         String targetTableName = exportable.referencedTable.getTableName(client.getMetadataStrategy());
 
-        StringBuilder buf = new StringBuilder();
-        buf.append("alter table ");
+        bufferContext.buf.append("alter table ");
         if (dialect.supportsIfExistsAfterAlterTable()) {
-            buf.append("if exists ");
+            bufferContext.buf.append("if exists ");
         }
-        buf.append(sourceTableName);
+        bufferContext.buf.append(sourceTableName);
 
         String joinColumnName = DDLUtils.getName(exportable.joinColumn, client.getMetadataStrategy());
-        String foreignKeyName = getForeignKeyName(exportable);
+        String foreignKeyName = getForeignKeyName(bufferContext, exportable);
         String definition = exportable.relation.definition();
-        if (definition != null && !definition.isEmpty()) {
-            buf.append(" add constraint ")
+        if (!definition.isEmpty()) {
+            bufferContext.buf.append(" add constraint ")
                 .append(dialect.quote(foreignKeyName))
                 .append(' ')
                 .append(definition);
         } else {
-            buf.append(" add constraint ")
+            bufferContext.buf.append(" add constraint ")
                 .append(dialect.quote(foreignKeyName))
                 .append(" foreign key (")
                 .append(joinColumnName)
@@ -77,9 +77,9 @@ public class StandardForeignKeyExporter implements Exporter<ForeignKey> {
         }
         OnDeleteAction action = exportable.relation.action();
         if (action != OnDeleteAction.NONE) {
-            buf.append(" on delete ").append(action.sql);
+            bufferContext.buf.append(" on delete ").append(action.sql);
         }
-        return Collections.singletonList(buf.toString());
+        return Collections.singletonList(bufferContext.buf.toString());
     }
 
     @Override
@@ -87,34 +87,30 @@ public class StandardForeignKeyExporter implements Exporter<ForeignKey> {
         if (!dialect.hasAlterTable()) {
             return Collections.emptyList();
         }
-        StringBuilder buf = new StringBuilder();
-        buf.append("alter table ");
+        BufferContext bufferContext = new BufferContext(this.client, exportable.table);
+        bufferContext.buf.append("alter table ");
         if (dialect.supportsIfExistsAfterAlterTable()) {
-            buf.append("if exists ");
+            bufferContext.buf.append("if exists ");
         }
-        buf
+        bufferContext.buf
             .append(exportable.table.getTableName(client.getMetadataStrategy()))
             .append(' ')
             .append(dialect.getDropForeignKeyString())
             .append(' ');
         if (dialect.supportsIfExistsBeforeConstraintName()) {
-            buf.append("if exists ");
+            bufferContext.buf.append("if exists ");
         }
-        buf.append(dialect.quote(getForeignKeyName(exportable)));
-        return Collections.singletonList(buf.toString());
+        bufferContext.buf.append(dialect.quote(getForeignKeyName(bufferContext, exportable)));
+        return Collections.singletonList(bufferContext.buf.toString());
     }
 
-    protected String getForeignKeyName(ForeignKey exportable) {
+    private String getForeignKeyName(BufferContext bufferContext, ForeignKey exportable) {
         String sourceTableName = exportable.table.getTableName(client.getMetadataStrategy());
         String foreignKeyName = exportable.relation.name();
         String joinColumnName = DDLUtils.getName(exportable.joinColumn, client.getMetadataStrategy());
         if (foreignKeyName.isEmpty()) {
-            try {
-                ConstraintNamingStrategy ns = exportable.relation.naming().getConstructor().newInstance();
-                foreignKeyName = ns.determineForeignKeyName(sourceTableName, new String[]{joinColumnName});
-            } catch (Exception e) {
-                throw new IllegalArgumentException("NamingStrategy doesn't have a no-arg constructor");
-            }
+            ConstraintNamingStrategy ns = bufferContext.getNamingStrategy(exportable.relation.naming());
+            foreignKeyName = ns.determineForeignKeyName(sourceTableName, new String[]{joinColumnName});
         }
         return foreignKeyName;
     }
