@@ -7,7 +7,7 @@
 
 ```groovy
 // Gradle
-implementation 'io.github.honhimw:jimmer-ddl:0.0.1'
+implementation 'io.github.honhimw:jimmer-ddl:0.0.2'
 ```
 
 ### Quick start
