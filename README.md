@@ -3,14 +3,14 @@
 > [!note]  
 > unofficial maintain implementation
 
-### Usage
+## Usage
 
 ```groovy
 // Gradle
 implementation 'io.github.honhimw:jimmer-ddl:0.0.1'
 ```
 
-#### Quick start
+### Quick start
 
 ```java
 JSqlClientImplementor client;
@@ -29,7 +29,7 @@ Collections.reverse(types);
 List<String> sqlDropStrings = schemaCreator.getSqlDropStrings(types);
 ```
 
-#### Auto Runner
+### Auto Runner
 ```java
 DDLAutoRunner autoRunner = new DDLAutoRunner(client, DDLAuto.CREATE_DROP, types)；
 autoRunner.init();
@@ -39,4 +39,35 @@ autoRunner.create();
 
 // on application destroy
 autoRunner.drop();
+```
+
+### Example with annotations
+
+```java
+@Entity
+@TableDef(
+    comment = "powerlifting player",
+    indexes = {
+        @Index(columns = "sbd.squat"),
+        @Index(columns = "sbd.benchPress"),
+        @Index(columns = "sbd.deadLift"),
+    },
+//    uniques = @Unique(columns = ""),
+    checks = @Check(constraint = "AGE > 16")
+)
+public interface Player {
+    @Id
+    @ColumnDef(length = 36, comment = "id")
+    String id();
+
+    @Nullable
+    SBD sbd();
+
+    @Nullable
+    @ColumnDef(
+        jdbcType = Types.SMALLINT,
+        comment = "age"
+    )
+    Integer age();
+}
 ```

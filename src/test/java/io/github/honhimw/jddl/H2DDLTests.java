@@ -124,6 +124,8 @@ public class H2DDLTests extends AbstractDDLTest {
             tables.add(Tables.BOOK_TABLE);
             tables.add(Tables.COUNTRY_TABLE);
             tables.add(Tables.ORGANIZATION_TABLE);
+            tables.add(Tables.PLAYER_TABLE);
+            tables.add(Tables.NAME_TABLE);
             List<ImmutableType> types = tables.stream().map(TableTypeProvider::getImmutableType).collect(Collectors.toList());
             types = DDLUtils.sortByDependent(sqlClient.getMetadataStrategy(), types);
 

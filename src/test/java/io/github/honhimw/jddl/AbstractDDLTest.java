@@ -11,6 +11,7 @@ import org.babyfish.jimmer.sql.dialect.Dialect;
 import org.babyfish.jimmer.sql.dialect.OracleDialect;
 import org.babyfish.jimmer.sql.dialect.SqlServerDialect;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Assertions;
 
 import java.sql.ResultSet;
@@ -30,10 +31,14 @@ import java.util.stream.Collectors;
 
 public abstract class AbstractDDLTest {
 
-    JSqlClientImplementor jSqlClientImplementor = (JSqlClientImplementor) JSqlClient.newBuilder()
-        .build();
+    @Nullable
+    private JSqlClientImplementor jSqlClientImplementor;
 
     protected JSqlClientImplementor getSqlClient() {
+        if (jSqlClientImplementor == null) {
+            jSqlClientImplementor = getSqlClient(builder -> {
+            });
+        }
         return jSqlClientImplementor;
     }
 
@@ -52,7 +57,7 @@ public abstract class AbstractDDLTest {
             String key = entry.getKey();
             Map<String, Object> value = entry.getValue();
             ImmutableProp prop = propMap.get(key);
-            assert prop != null : key;
+            Assertions.assertNotNull(prop, key);
 
             if (prop.isReference(TargetLevel.PERSISTENT)) {
                 prop = prop.getTargetType().getIdProp();

@@ -130,7 +130,7 @@ public class StandardTableExporter implements Exporter<ImmutableType> {
                     buf.append(index.name());
                 } else {
                     ConstraintNamingStrategy namingStrategy = bufferContext.getNamingStrategy(index.naming());
-                    buf.append(namingStrategy.determineIndexName(bufferContext.tableName, index.columns()));
+                    buf.append(namingStrategy.determineIndexName(bufferContext.tableName, resolveColumnNames(bufferContext, index.columns(), index.kind())));
                 }
                 buf
                     .append(" on ")
@@ -145,28 +145,13 @@ public class StandardTableExporter implements Exporter<ImmutableType> {
     }
 
     private void appendIndexColumnList(BufferContext bufferContext, StringBuilder idxBuf, Index index) {
-        boolean isFirst = true;
         String[] columns = index.columns();
         Kind kind = index.kind();
+        columns = resolveColumnNames(bufferContext, columns, kind);
+        String separator = "";
         for (String column : columns) {
-            if (isFirst) {
-                isFirst = false;
-            } else {
-                idxBuf.append(", ");
-            }
-            switch (kind) {
-                case PATH:
-                    ImmutableProp immutableProp = bufferContext.allDefinitionProps.get(column);
-                    if (immutableProp != null) {
-                        idxBuf.append(dialect.quote(DDLUtils.getName(immutableProp, client.getMetadataStrategy())));
-                    } else {
-                        throw new IllegalArgumentException("unknown column in constraint define: " + column);
-                    }
-                    break;
-                case NAME:
-                    idxBuf.append(dialect.quote(column));
-                    break;
-            }
+            idxBuf.append(separator).append(column);
+            separator = ", ";
         }
     }
 
@@ -445,28 +430,13 @@ public class StandardTableExporter implements Exporter<ImmutableType> {
             bufferContext.buf.append(namingStrategy.determineUniqueKeyName(bufferContext.tableName, unique.columns()));
         }
         bufferContext.buf.append(" unique (");
-        Kind kind = unique.kind();
         String[] columns = unique.columns();
-        boolean isFirst = true;
+        Kind kind = unique.kind();
+        columns = resolveColumnNames(bufferContext, columns, kind);
+        String separator = "";
         for (String column : columns) {
-            if (isFirst) {
-                isFirst = false;
-            } else {
-                bufferContext.buf.append(", ");
-            }
-            switch (kind) {
-                case PATH:
-                    ImmutableProp immutableProp = bufferContext.allDefinitionProps.get(column);
-                    if (immutableProp != null) {
-                        bufferContext.buf.append(dialect.quote(getName(immutableProp)));
-                    } else {
-                        throw new IllegalArgumentException("unknown column in constraint define: " + column);
-                    }
-                    break;
-                case NAME:
-                    bufferContext.buf.append(dialect.quote(column));
-                    break;
-            }
+            bufferContext.buf.append(separator).append(column);
+            separator = ", ";
         }
         bufferContext.buf.append(')');
     }
@@ -520,6 +490,27 @@ public class StandardTableExporter implements Exporter<ImmutableType> {
         if (action != OnDeleteAction.NONE) {
             bufferContext.buf.append(" on delete ").append(action.sql);
         }
+    }
+
+    private String[] resolveColumnNames(BufferContext bufferContext, String[] columns, Kind kind) {
+        String[] _columns = new String[columns.length];
+        for (int i = 0; i < columns.length; i++) {
+            String column = columns[i];
+            switch (kind) {
+                case PATH:
+                    ImmutableProp immutableProp = bufferContext.allDefinitionProps.get(column);
+                    if (immutableProp != null) {
+                        _columns[i] = dialect.quote(getName(immutableProp));
+                    } else {
+                        throw new IllegalArgumentException("unknown column in constraint define: " + column);
+                    }
+                    break;
+                case NAME:
+                    _columns[i] = dialect.quote(column);
+                    break;
+            }
+        }
+        return _columns;
     }
 
     private String getName(ImmutableProp prop) {

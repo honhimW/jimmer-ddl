@@ -39,7 +39,7 @@ public class UtilTests extends AbstractDDLTest {
         List<ImmutableType> types = tables.stream().map(TableTypeProvider::getImmutableType).collect(Collectors.toList());
         types = DDLUtils.sortByDependent(sqlClient.getMetadataStrategy(), types);
         for (ImmutableType type : types) {
-            System.out.println(type.getTableName(jSqlClientImplementor.getMetadataStrategy()));
+            System.out.println(type.getTableName(sqlClient.getMetadataStrategy()));
         }
         Assertions.assertEquals(types.size(), tables.size());
         Assertions.assertTrue(types.indexOf(Tables.COUNTRY_TABLE.getImmutableType()) < types.indexOf(Tables.AUTHOR_TABLE.getImmutableType()));
