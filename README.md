@@ -1,5 +1,8 @@
 # Jimmer ddl generator
 
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.honhimw/jimmer-ddl.svg)](https://central.sonatype.com/artifact/io.github.honhimw/jimmer-ddl)
+
+
 > [!note]  
 > unofficial maintain implementation
 
