@@ -322,7 +322,7 @@ public class StandardTableExporter implements Exporter<ImmutableType> {
 
             Ref<Object> defaultValueRef = prop.getDefaultValueRef();
             if (defaultValueRef != null) {
-                bufferContext.buf.append(" default ").append(defaultValueRef.getValue());
+                bufferContext.buf.append(" default ").append("'" + defaultValueRef.getValue() + "'");
             }
 
             if (nullable) {
