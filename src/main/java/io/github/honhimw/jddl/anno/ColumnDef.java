@@ -45,14 +45,18 @@ public @interface ColumnDef {
 
     /**
      * Define default field value if not blank.
+     * <p style="color:blue;font-size:large">NOTE</p>
+     * <pre>
+     *     Better not use `@Default` if you want to use this as default value
+     * </pre>
      * <p>
      * Examples:
      * <pre>
-     *   rawDefault = "null"
-     *   rawDefault = "1"
-     *   rawDefault = "CURRENT_TIMESTAMP"
-     *   rawDefault = "'foo bar'"
-     *   rawDefault = "'2000-01-01'"
+     *     rawDefault = "null"
+     *     rawDefault = "1"
+     *     rawDefault = "CURRENT_TIMESTAMP"
+     *     rawDefault = "'foo bar'"
+     *     rawDefault = "'2000-01-01'"
      * </pre>
      *
      * @see org.babyfish.jimmer.sql.meta.impl.MetadataLiterals literal value will convert into java type at runtime
