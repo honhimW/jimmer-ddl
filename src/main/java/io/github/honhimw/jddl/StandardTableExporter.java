@@ -320,9 +320,13 @@ public class StandardTableExporter implements Exporter<ImmutableType> {
         } else {
             bufferContext.buf.append(' ').append(columnType);
 
-            Ref<Object> defaultValueRef = prop.getDefaultValueRef();
-            if (defaultValueRef != null) {
-                bufferContext.buf.append(" default ").append(defaultValueRef.getValue());
+            if (!colDef.defaultValue().isEmpty()) {
+                bufferContext.buf.append(" default ").append(colDef.defaultValue());
+            } else {
+                Ref<Object> defaultValueRef = prop.getDefaultValueRef();
+                if (defaultValueRef != null) {
+                    bufferContext.buf.append(" default ").append(defaultValueRef.getValue());
+                }
             }
 
             if (nullable) {
