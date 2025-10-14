@@ -6,6 +6,8 @@ package io.github.honhimw.jddl;
 
 public class ConstraintNamingStrategy {
 
+    public boolean uppercase = false;
+
     public String determineUniqueKeyName(String tableName, String[] columnNames) {
         return defaultPattern("uk", tableName, columnNames);
     }
@@ -20,6 +22,9 @@ public class ConstraintNamingStrategy {
 
     protected String defaultPattern(String prefix, String tableName, String[] columnNames) {
         StringBuilder sb = new StringBuilder();
+        if (uppercase) {
+            prefix = prefix.toUpperCase();
+        }
         sb.append(prefix).append('_').append(tableName);
         for (String columnName : columnNames) {
             sb.append('_').append(columnName);

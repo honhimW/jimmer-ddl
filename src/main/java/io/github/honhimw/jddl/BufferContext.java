@@ -21,13 +21,15 @@ class BufferContext {
 
     public final ImmutableType tableType;
 
-    public Map<String, ImmutableProp> allDefinitionProps;
+    public final Map<String, ImmutableProp> allDefinitionProps;
 
-    public List<ImmutableProp> definitionProps;
+    public final List<ImmutableProp> definitionProps;
 
     public final String tableName;
 
     public final List<String> commentStatements;
+
+    public final boolean uppercase;
 
     @Nullable
     private TableDef tableDef;
@@ -39,6 +41,7 @@ class BufferContext {
         this.client = client;
         this.tableType = tableType;
         this.tableName = tableType.getTableName(client.getMetadataStrategy());
+        this.uppercase = tableName.equals(tableName.toUpperCase());
         this.commentStatements = new ArrayList<>();
         this.namingStrategies = new HashMap<>();
         this.definitionProps = new ArrayList<>();
@@ -63,6 +66,7 @@ class BufferContext {
             if (ns == null) {
                 try {
                     ns = aClass.getConstructor().newInstance();
+                    ns.uppercase = this.uppercase;
                 } catch (Exception e) {
                     throw new IllegalArgumentException("NamingStrategy doesn't have a no-arg constructor");
                 }

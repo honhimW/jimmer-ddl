@@ -19,6 +19,8 @@ import org.babyfish.jimmer.sql.runtime.ScalarProvider;
 import java.sql.DatabaseMetaData;
 import java.sql.Types;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -186,8 +188,17 @@ public class StandardTableExporter implements Exporter<ImmutableType> {
                     if (!name.isEmpty()) {
                         bufferContext.buf.append("constraint ").append(name).append(' ');
                     }
-                    String constraint = check.constraint();
-                    bufferContext.buf.append("check (").append(constraint).append(")");
+                    String constraint = check.value();
+                    Pattern pattern = Pattern.compile("#(?<column>[\\w.]+)");
+                    Matcher matcher = pattern.matcher(constraint);
+                    StringBuffer buffer = new StringBuffer();
+                    while (matcher.find()) {
+                        String column = matcher.group("column");
+                        String columnName = resolveColumnNames(bufferContext, new String[] {column}, Kind.PATH)[0];
+                        matcher.appendReplacement(buffer, columnName);
+                    }
+                    matcher.appendTail(buffer);
+                    bufferContext.buf.append("check (").append(buffer).append(")");
                 }
             });
         }
@@ -320,7 +331,7 @@ public class StandardTableExporter implements Exporter<ImmutableType> {
         } else {
             bufferContext.buf.append(' ').append(columnType);
 
-            if (!colDef.defaultValue().isEmpty()) {
+            if (colDef != null && !colDef.defaultValue().isEmpty()) {
                 bufferContext.buf.append(" default ").append(colDef.defaultValue());
             } else {
                 Ref<Object> defaultValueRef = prop.getDefaultValueRef();

@@ -1,8 +1,8 @@
 [versions]
-version = "0.0.2"
+version = "0.0.3"
 slf4j = "2.0.17"
 jspecify = "1.0.0"
-jimmer-bom = "0.9.110"
+jimmer-bom = "0.9.111"
 h2 = "2.3.232"
 central-publish = "0.34.0"
 

@@ -20,7 +20,10 @@ import java.sql.Types;
         @Index(columns = "sbd.deadLift"),
     },
 //    uniques = @Unique(columns = ""),
-    checks = @Check(constraint = "AGE > 16")
+    checks = {
+        @Check("AGE > 16"),
+        @Check("#sbd.squat > 200"),
+    }
 )
 public interface Player {
 

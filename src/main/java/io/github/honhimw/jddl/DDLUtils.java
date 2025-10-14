@@ -217,6 +217,11 @@ public class DDLUtils {
         }
 
         @Override
+        public String defaultValue() {
+            return "";
+        }
+
+        @Override
         public String comment() {
             return "";
         }

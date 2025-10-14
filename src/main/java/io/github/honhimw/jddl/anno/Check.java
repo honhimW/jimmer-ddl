@@ -13,6 +13,6 @@ public @interface Check {
 
     String name() default "";
 
-    String constraint();
+    String value();
 
 }
