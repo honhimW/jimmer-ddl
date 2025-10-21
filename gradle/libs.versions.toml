@@ -1,6 +1,7 @@
 [versions]
 version = "0.0.3"
 slf4j = "2.0.17"
+logback = "1.5.20"
 jspecify = "1.0.0"
 jimmer-bom = "0.9.111"
 h2 = "2.3.232"
@@ -16,9 +17,9 @@ hikari = "7.0.2"
 module = "org.slf4j:slf4j-api"
 version.ref = "slf4j"
 
-[libraries.slf4j-simple]
-module = "org.slf4j:slf4j-simple"
-version.ref = "slf4j"
+[libraries.logback-classic]
+module = "ch.qos.logback:logback-classic"
+version.ref = "logback"
 
 [libraries.jspecify]
 module = "org.jspecify:jspecify"

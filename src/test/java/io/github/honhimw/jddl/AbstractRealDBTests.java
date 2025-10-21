@@ -3,7 +3,6 @@ package io.github.honhimw.jddl;
 import com.zaxxer.hikari.HikariDataSource;
 import io.github.honhimw.jddl.model.Tables;
 import org.babyfish.jimmer.meta.ImmutableType;
-import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.ast.impl.table.TableTypeProvider;
 import org.babyfish.jimmer.sql.ast.table.Table;
 import org.babyfish.jimmer.sql.dialect.*;
@@ -12,13 +11,13 @@ import org.babyfish.jimmer.sql.runtime.SqlFormatter;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.DockerClientFactory;
+import org.testcontainers.containers.JdbcDatabaseContainer;
 
 import javax.sql.DataSource;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -30,6 +29,9 @@ public abstract class AbstractRealDBTests extends AbstractDDLTest {
 
     @Nullable
     private DataSource dataSource;
+
+    @Nullable
+    private JdbcDatabaseContainer<?> testContainer;
 
     protected abstract Dialect dialect();
 
@@ -97,11 +99,29 @@ public abstract class AbstractRealDBTests extends AbstractDDLTest {
             });
         }
         Assertions.assertDoesNotThrow(ddlAutoRunner::drop);
+        if (testContainer != null) {
+            testContainer.stop();
+        }
     }
 
     @Nullable
     protected DataSource dataSource() {
         if (dataSource == null) {
+            if (DockerClientFactory.instance().isDockerAvailable()) {
+                Optional<JdbcDatabaseContainer<?>> jdbcDatabaseContainer = testContainer();
+                if (jdbcDatabaseContainer.isPresent()) {
+                    JdbcDatabaseContainer<?> container = jdbcDatabaseContainer.get();
+                    testContainer = container;
+                    container.start();
+                    HikariDataSource dataSource = new HikariDataSource();
+                    dataSource.setJdbcUrl(container.getJdbcUrl());
+                    dataSource.setDriverClassName(container.getDriverClassName());
+                    dataSource.setUsername(container.getUsername());
+                    dataSource.setPassword(container.getPassword());
+                    this.dataSource = dataSource;
+                    return this.dataSource;
+                }
+            }
             HikariDataSource dataSource = new HikariDataSource();
             String jdbcUrl = String.format("%s_JDBC_URL", prefix());
             String driverClassName = String.format("%s_DRIVER_CLASS_NAME", prefix());
@@ -131,6 +151,10 @@ public abstract class AbstractRealDBTests extends AbstractDDLTest {
 
     protected void setProperties(Properties properties) {
 
+    }
+
+    protected Optional<JdbcDatabaseContainer<?>> testContainer() {
+        return Optional.empty();
     }
 
 }
