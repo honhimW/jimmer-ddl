@@ -47,7 +47,8 @@ public class DDLAutoRunner {
                     create(schemaCreator, types);
                     break;
                 case CREATE_DROP: {
-                    processDrop(schemaCreator, types);
+                    // prefer drop manually
+                    // processDrop(schemaCreator, types);
                     processCreate(schemaCreator, types);
                     break;
                 }

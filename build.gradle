@@ -35,13 +35,20 @@ dependencies {
 
     compileOnly 'org.babyfish.jimmer:jimmer-sql'
     compileOnly libs.jspecify
-    compileOnly libs.slf4j
+    compileOnly libs.slf4j.api
 
     testImplementation libs.h2
     testImplementation(platform(libs.jimmer.bom))
     testAnnotationProcessor(platform(libs.jimmer.bom))
     testImplementation 'org.babyfish.jimmer:jimmer-sql'
     testImplementation libs.jspecify
+    testImplementation libs.hikari
+    testRuntimeOnly libs.postgresql
+    testRuntimeOnly libs.mysql
+    testRuntimeOnly libs.mssql
+    testRuntimeOnly libs.oracle
+    testRuntimeOnly libs.sqlite
+    testRuntimeOnly libs.slf4j.simple
 
     testAnnotationProcessor 'org.babyfish.jimmer:jimmer-apt'
 

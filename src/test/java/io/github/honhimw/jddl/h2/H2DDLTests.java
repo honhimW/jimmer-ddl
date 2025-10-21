@@ -1,5 +1,6 @@
-package io.github.honhimw.jddl;
+package io.github.honhimw.jddl.h2;
 
+import io.github.honhimw.jddl.*;
 import io.github.honhimw.jddl.model.Tables;
 import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.sql.ast.impl.table.TableTypeProvider;
@@ -9,12 +10,10 @@ import org.babyfish.jimmer.sql.runtime.ConnectionManager;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 import org.babyfish.jimmer.sql.runtime.SqlFormatter;
 import org.h2.jdbcx.JdbcDataSource;
-import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import javax.sql.DataSource;
-import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -22,7 +21,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -100,16 +98,7 @@ public class H2DDLTests extends AbstractDDLTest {
                 // test tables contains foreign-key
                 continue;
             }
-            ConnectionManager connectionManager = new ConnectionManager() {
-                @Override
-                public <R> R execute(@Nullable Connection con, Function<Connection, R> block) {
-                    try (Connection connection = inMemoryDataSource.getConnection()) {
-                        return block.apply(connection);
-                    } catch (SQLException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            };
+            ConnectionManager connectionManager = new DataSourceConnectionManager(inMemoryDataSource);
             System.out.println("############" + mode.name() + "############");
             JSqlClientImplementor sqlClient = getSqlClient(builder -> builder
                 .setDialect(dialect)

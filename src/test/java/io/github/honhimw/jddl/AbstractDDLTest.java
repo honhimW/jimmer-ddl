@@ -14,6 +14,7 @@ import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Assertions;
 
+import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
@@ -49,7 +50,7 @@ public abstract class AbstractDDLTest {
         return jSqlClientImplementor;
     }
 
-    void assertColumnTypes(ImmutableType immutableType, Map<String, Map<String, Object>> collect) {
+    protected void assertColumnTypes(ImmutableType immutableType, Map<String, Map<String, Object>> collect) {
         Map<String, ImmutableProp> allScalarProps = DDLUtils.allDefinitionProps(immutableType);
         Map<String, ImmutableProp> propMap = allScalarProps.values().stream().collect(Collectors.toMap(prop -> DDLUtils.getName(prop, jSqlClientImplementor.getMetadataStrategy()), prop -> prop));
         DDLDialect ddlDialect = DDLDialect.of(jSqlClientImplementor.getDialect(), null);
@@ -71,6 +72,10 @@ public abstract class AbstractDDLTest {
 
             Object dataType = value.get("DATA_TYPE");
             Assertions.assertNotNull(dataType);
+            if (dataType instanceof BigDecimal) { // Oracle
+                BigDecimal bigInteger = (BigDecimal) dataType;
+                dataType = bigInteger.intValue();
+            }
 
             jdbcType = adjustJdbcType(jdbcType);
 
@@ -81,9 +86,13 @@ public abstract class AbstractDDLTest {
                 }
                 Assertions.assertFalse(sqlType.isEmpty(), "prop should has a sqlType");
             } else {
-                Assertions.assertEquals(jdbcType, dataType, String.format("prop: %s, jdbc: %d, dataType: %s", prop.getName(), jdbcType, dataType));
+                assertType(jdbcType, dataType, prop);
             }
         }
+    }
+
+    protected void assertType(int jdbcType, Object dataType, ImmutableProp prop) {
+        Assertions.assertEquals(jdbcType, dataType, String.format("prop: %s, jdbc: %d, dataType: %s", prop.getName(), jdbcType, dataType));
     }
 
     int adjustJdbcType(int jdbcType) {

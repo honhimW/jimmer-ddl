@@ -4,10 +4,20 @@ slf4j = "2.0.17"
 jspecify = "1.0.0"
 jimmer-bom = "0.9.111"
 h2 = "2.3.232"
+postgresql = "42.7.8"
+mysql = "9.4.0"
+mssql = "13.2.1.jre8"
+oracle = "23.9.0.25.07"
+sqlite = "3.50.3.0"
 central-publish = "0.34.0"
+hikari = "7.0.2"
 
-[libraries.slf4j]
+[libraries.slf4j-api]
 module = "org.slf4j:slf4j-api"
+version.ref = "slf4j"
+
+[libraries.slf4j-simple]
+module = "org.slf4j:slf4j-simple"
 version.ref = "slf4j"
 
 [libraries.jspecify]
@@ -21,6 +31,30 @@ version.ref = "jimmer-bom"
 [libraries.h2]
 module = "com.h2database:h2"
 version.ref = "h2"
+
+[libraries.postgresql]
+module = "org.postgresql:postgresql"
+version.ref = "postgresql"
+
+[libraries.mysql]
+module = "com.mysql:mysql-connector-j"
+version.ref = "mysql"
+
+[libraries.mssql]
+module = "com.microsoft.sqlserver:mssql-jdbc"
+version.ref = "mssql"
+
+[libraries.oracle]
+module = "com.oracle.database.jdbc:ojdbc8"
+version.ref = "oracle"
+
+[libraries.sqlite]
+module = "org.xerial:sqlite-jdbc"
+version.ref = "sqlite"
+
+[libraries.hikari]
+module = "com.zaxxer:HikariCP"
+version.ref = "hikari"
 
 [plugins.publish]
 id = "com.vanniktech.maven.publish"
