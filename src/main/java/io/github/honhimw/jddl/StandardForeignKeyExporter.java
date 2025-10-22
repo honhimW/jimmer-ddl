@@ -4,7 +4,6 @@ import io.github.honhimw.jddl.anno.OnDeleteAction;
 import io.github.honhimw.jddl.dialect.DDLDialect;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 
-import java.sql.DatabaseMetaData;
 import java.util.Collections;
 import java.util.List;
 
@@ -20,18 +19,7 @@ public class StandardForeignKeyExporter implements Exporter<ForeignKey> {
 
     public StandardForeignKeyExporter(JSqlClientImplementor client) {
         this.client = client;
-        DatabaseVersion databaseVersion = client.getConnectionManager().execute(connection -> {
-            try {
-                DatabaseMetaData metaData = connection.getMetaData();
-                int databaseMajorVersion = metaData.getDatabaseMajorVersion();
-                int databaseMinorVersion = metaData.getDatabaseMinorVersion();
-                String databaseProductVersion = metaData.getDatabaseProductVersion();
-                return new DatabaseVersion(databaseMajorVersion, databaseMinorVersion, databaseProductVersion);
-            } catch (Exception e) {
-                // cannot get database version, using latest as default
-                return DatabaseVersion.LATEST;
-            }
-        });
+        DatabaseVersion databaseVersion = DDLUtils.getDatabaseVersion(client);
         this.dialect = DDLDialect.of(client.getDialect(), databaseVersion);
     }
 
@@ -49,7 +37,7 @@ public class StandardForeignKeyExporter implements Exporter<ForeignKey> {
         String sourceTableName = exportable.table.getTableName(client.getMetadataStrategy());
         String targetTableName = exportable.referencedTable.getTableName(client.getMetadataStrategy());
 
-        bufferContext.buf.append("alter table ");
+        bufferContext.buf.append(dialect.getAlterTableString()).append(' ');
         if (dialect.supportsIfExistsAfterAlterTable()) {
             bufferContext.buf.append("if exists ");
         }
@@ -88,7 +76,7 @@ public class StandardForeignKeyExporter implements Exporter<ForeignKey> {
             return Collections.emptyList();
         }
         BufferContext bufferContext = new BufferContext(this.client, exportable.table);
-        bufferContext.buf.append("alter table ");
+        bufferContext.buf.append(dialect.getAlterTableString()).append(' ');
         if (dialect.supportsIfExistsAfterAlterTable()) {
             bufferContext.buf.append("if exists ");
         }

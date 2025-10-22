@@ -14,11 +14,8 @@ import org.babyfish.jimmer.sql.meta.impl.Storages;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.NullUnmarked;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Annotation;
-import java.sql.DatabaseMetaData;
 import java.util.*;
 
 /**
@@ -27,8 +24,6 @@ import java.util.*;
 
 @NullUnmarked
 public class SchemaCreator implements Exporter<@NonNull Collection<ImmutableType>> {
-
-    private static final Logger log = LoggerFactory.getLogger("jimmer.ddl.sql");
 
     private final JSqlClientImplementor client;
 
@@ -54,18 +49,7 @@ public class SchemaCreator implements Exporter<@NonNull Collection<ImmutableType
      */
     public void init() {
         if (version == null) {
-            version = client.getConnectionManager().execute(connection -> {
-                try {
-                    DatabaseMetaData metaData = connection.getMetaData();
-                    int databaseMajorVersion = metaData.getDatabaseMajorVersion();
-                    int databaseMinorVersion = metaData.getDatabaseMinorVersion();
-                    String databaseProductVersion = metaData.getDatabaseProductVersion();
-                    return new DatabaseVersion(databaseMajorVersion, databaseMinorVersion, databaseProductVersion);
-                } catch (Exception e) {
-                    // cannot get database version, using latest as default
-                    return DatabaseVersion.LATEST;
-                }
-            });
+            version = DDLUtils.getDatabaseVersion(client);
         }
         standardTableExporter = new StandardTableExporter(client, version);
         standardForeignKeyExporter = new StandardForeignKeyExporter(client, version);
@@ -95,9 +79,6 @@ public class SchemaCreator implements Exporter<@NonNull Collection<ImmutableType
     }
 
     private void applyCreateSequences(Collection<ImmutableType> exportable, List<String> allSqlCreateStrings) {
-        if (log.isDebugEnabled()) {
-            log.debug("-- start create sequences.");
-        }
         for (ImmutableType immutableType : exportable) {
             Map<String, ImmutableProp> allDefinitionProps = DDLUtils.allDefinitionProps(immutableType);
             for (Map.Entry<String, ImmutableProp> entry : allDefinitionProps.entrySet()) {
@@ -105,29 +86,15 @@ public class SchemaCreator implements Exporter<@NonNull Collection<ImmutableType
                 if (definitionProp.getAnnotation(GeneratedValue.class) != null) {
                     List<String> sqlCreateStrings = standardSequenceExporter.getSqlCreateStrings(definitionProp);
                     allSqlCreateStrings.addAll(sqlCreateStrings);
-                    if (log.isDebugEnabled()) {
-                        for (String sqlCreateString : sqlCreateStrings) {
-                            log.debug("{}", sqlCreateString);
-                        }
-                    }
                 }
             }
         }
     }
 
     private void applyCreateTables(Collection<ImmutableType> exportable, List<String> allSqlCreateStrings) {
-        if (log.isDebugEnabled()) {
-            log.debug("-- start create tables.");
-        }
-
         for (ImmutableType immutableType : exportable) {
             List<String> sqlCreateStrings = standardTableExporter.getSqlCreateStrings(immutableType);
             allSqlCreateStrings.addAll(sqlCreateStrings);
-            if (log.isDebugEnabled()) {
-                for (String sqlCreateString : sqlCreateStrings) {
-                    log.debug("{}", sqlCreateString);
-                }
-            }
         }
     }
 
@@ -148,9 +115,6 @@ public class SchemaCreator implements Exporter<@NonNull Collection<ImmutableType
                             MiddleTable middleTable = (MiddleTable) storage;
                             String middleTableName = middleTable.getTableName();
                             if (tableNames.contains(middleTableName)) {
-                                if (log.isDebugEnabled()) {
-                                    log.debug("-- entity with table name `{}` already defines the intermediate table, ignoring middle-table.", middleTableName);
-                                }
                                 continue;
                             }
 
@@ -312,69 +276,36 @@ public class SchemaCreator implements Exporter<@NonNull Collection<ImmutableType
 
     private void applyCreateForeignKeys(Collection<ImmutableType> exportable, List<String> allSqlCreateStrings) {
         if (!client.getDialect().isForeignKeySupported()) {
-            if (log.isDebugEnabled()) {
-                log.debug("-- `{}` does not supports foreign key.", client.getDialect().getClass().getSimpleName());
-            }
             return;
-        }
-        if (log.isDebugEnabled()) {
-            log.debug("-- start create foreign keys.");
         }
         for (ImmutableType immutableType : exportable) {
             for (ForeignKey foreignKey : DDLUtils.getForeignKeys(client.getMetadataStrategy(), immutableType)) {
                 List<String> sqlCreateStrings = standardForeignKeyExporter.getSqlCreateStrings(foreignKey);
                 allSqlCreateStrings.addAll(sqlCreateStrings);
-                if (log.isDebugEnabled()) {
-                    for (String sqlCreateString : sqlCreateStrings) {
-                        log.debug("{}", sqlCreateString);
-                    }
-                }
             }
         }
     }
 
     private void applyDropForeignKeys(Collection<ImmutableType> exportable, List<String> allSqlCreateStrings) {
         if (!client.getDialect().isForeignKeySupported()) {
-            if (log.isDebugEnabled()) {
-                log.debug("-- `{}` does not supports foreign key.", client.getDialect().getClass().getSimpleName());
-            }
             return;
-        }
-        if (log.isDebugEnabled()) {
-            log.debug("-- start drop foreign keys.");
         }
         for (ImmutableType immutableType : exportable) {
             for (ForeignKey foreignKey : DDLUtils.getForeignKeys(client.getMetadataStrategy(), immutableType)) {
                 List<String> sqlCreateStrings = standardForeignKeyExporter.getSqlDropStrings(foreignKey);
                 allSqlCreateStrings.addAll(sqlCreateStrings);
-                if (log.isDebugEnabled()) {
-                    for (String sqlCreateString : sqlCreateStrings) {
-                        log.debug("{}", sqlCreateString);
-                    }
-                }
             }
         }
     }
 
     private void applyDropTables(Collection<ImmutableType> exportable, List<String> allSqlCreateStrings) {
-        if (log.isDebugEnabled()) {
-            log.debug("-- start drop tables.");
-        }
         for (ImmutableType immutableType : exportable) {
             List<String> sqlDropStrings = standardTableExporter.getSqlDropStrings(immutableType);
             allSqlCreateStrings.addAll(sqlDropStrings);
-            if (log.isDebugEnabled()) {
-                for (String sqlDropString : sqlDropStrings) {
-                    log.debug("{}", sqlDropString);
-                }
-            }
         }
     }
 
     private void applyDropSequences(Collection<ImmutableType> exportable, List<String> allSqlCreateStrings) {
-        if (log.isDebugEnabled()) {
-            log.debug("-- start drop sequences.");
-        }
         for (ImmutableType immutableType : exportable) {
             Map<String, ImmutableProp> allDefinitionProps = DDLUtils.allDefinitionProps(immutableType);
             for (Map.Entry<String, ImmutableProp> entry : allDefinitionProps.entrySet()) {
@@ -382,11 +313,6 @@ public class SchemaCreator implements Exporter<@NonNull Collection<ImmutableType
                 if (definitionProp.getAnnotation(GeneratedValue.class) != null) {
                     List<String> sqlCreateStrings = standardSequenceExporter.getSqlDropStrings(definitionProp);
                     allSqlCreateStrings.addAll(sqlCreateStrings);
-                    if (log.isDebugEnabled()) {
-                        for (String sqlCreateString : sqlCreateStrings) {
-                            log.debug("{}", sqlCreateString);
-                        }
-                    }
                 }
             }
         }

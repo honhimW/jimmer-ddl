@@ -1,12 +1,14 @@
 package io.github.honhimw.jddl;
 
 import io.github.honhimw.jddl.anno.*;
+import io.github.honhimw.jddl.column.ColumnResolver;
 import io.github.honhimw.jddl.dialect.DDLDialect;
 import org.babyfish.jimmer.lang.Ref;
 import org.babyfish.jimmer.meta.EmbeddedLevel;
 import org.babyfish.jimmer.meta.ImmutableProp;
 import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.meta.TargetLevel;
+import org.babyfish.jimmer.sql.EnumType;
 import org.babyfish.jimmer.sql.GeneratedValue;
 import org.babyfish.jimmer.sql.meta.EmbeddedColumns;
 import org.babyfish.jimmer.sql.meta.SingleColumn;
@@ -35,18 +37,7 @@ public class StandardTableExporter implements Exporter<ImmutableType> {
 
     public StandardTableExporter(JSqlClientImplementor client) {
         this.client = client;
-        DatabaseVersion databaseVersion = client.getConnectionManager().execute(connection -> {
-            try {
-                DatabaseMetaData metaData = connection.getMetaData();
-                int databaseMajorVersion = metaData.getDatabaseMajorVersion();
-                int databaseMinorVersion = metaData.getDatabaseMinorVersion();
-                String databaseProductVersion = metaData.getDatabaseProductVersion();
-                return new DatabaseVersion(databaseMajorVersion, databaseMinorVersion, databaseProductVersion);
-            } catch (Exception e) {
-                // cannot get database version, using latest as default
-                return DatabaseVersion.LATEST;
-            }
-        });
+        DatabaseVersion databaseVersion = DDLUtils.getDatabaseVersion(client);
         this.dialect = DDLDialect.of(client.getDialect(), databaseVersion);
     }
 
@@ -280,48 +271,17 @@ public class StandardTableExporter implements Exporter<ImmutableType> {
         bufferContext.buf.append(dialect.quote(getName(prop)));
         ColumnDef colDef = prop.getAnnotation(ColumnDef.class);
 
-        boolean nullable = prop.isNullable();
+        ColumnResolver columnResolver = new ColumnResolver(client, dialect, prop);
 
-        if (prop.isReference(TargetLevel.PERSISTENT)) {
-            prop = prop.getTargetType().getIdProp();
+        String columnDefinition = columnResolver.columnDefinition();
+        if (!columnDefinition.isEmpty()) {
+            bufferContext.buf.append(' ').append(colDef.definition());
+            return;
         }
-
-        String sqlType = dialect.resolveSqlType(prop.getReturnClass(), DDLUtils.resolveEnum(this.client, prop));
-        int jdbcType = dialect.resolveJdbcType(prop.getReturnClass(), DDLUtils.resolveEnum(this.client, prop));
-        long l = dialect.getDefaultLength(jdbcType);
-        Integer p = DDLUtils.resolveDefaultPrecision(jdbcType, dialect);
-        int s = dialect.getDefaultScale(jdbcType);
-
-        if (colDef != null) {
-            if (!colDef.definition().isEmpty()) {
-                bufferContext.buf.append(' ').append(colDef.definition());
-                return;
-            }
-            switch (colDef.nullable()) {
-                case TRUE:
-                    nullable = true;
-                    break;
-                case FALSE:
-                    nullable = false;
-                    break;
-            }
-            if (colDef.jdbcType() != Types.OTHER) {
-                jdbcType = colDef.jdbcType();
-            }
-            if (!colDef.sqlType().isEmpty()) {
-                sqlType = colDef.sqlType();
-            }
-            l = colDef.length() > 0 ? colDef.length() : dialect.getDefaultLength(jdbcType);
-            p = colDef.precision() > 0 ? Integer.valueOf(colDef.precision()) : DDLUtils.resolveDefaultPrecision(jdbcType, dialect);
-            s = colDef.scale() > 0 ? colDef.scale() : dialect.getDefaultScale(jdbcType);
-        }
-
-        String columnType;
-        if (!sqlType.isEmpty()) {
-            columnType = DDLUtils.replace(sqlType, l, p, s);
-        } else {
-            columnType = dialect.columnType(jdbcType, l, p, s);
-        }
+        boolean nullable = columnResolver.nullable();
+        int jdbcType = columnResolver.jdbcType();
+        String columnType = columnResolver.columnType();
+        Object defaultValue = columnResolver.defaultValue();
 
         if (isId) {
             if (dialect.hasDataTypeInIdentityColumn()) {
@@ -331,13 +291,8 @@ public class StandardTableExporter implements Exporter<ImmutableType> {
         } else {
             bufferContext.buf.append(' ').append(columnType);
 
-            if (colDef != null && !colDef.defaultValue().isEmpty()) {
-                bufferContext.buf.append(" default ").append(colDef.defaultValue());
-            } else {
-                Ref<Object> defaultValueRef = prop.getDefaultValueRef();
-                if (defaultValueRef != null) {
-                    bufferContext.buf.append(" default ").append(defaultValueRef.getValue());
-                }
+            if (defaultValue != null) {
+                bufferContext.buf.append(" default ").append(defaultValue);
             }
 
             if (nullable) {

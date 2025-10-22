@@ -105,4 +105,9 @@ public class OracleDDLDialect extends DefaultDDLDialect {
     public boolean supportsIfExistsAfterDropSequence() {
         return isSameOrAfter(23);
     }
+
+    @Override
+    public String getAddColumnString() {
+        return "add";
+    }
 }

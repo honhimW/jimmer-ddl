@@ -18,6 +18,7 @@ import org.babyfish.jimmer.sql.runtime.ScalarProvider;
 import org.jspecify.annotations.Nullable;
 
 import java.lang.annotation.Annotation;
+import java.sql.DatabaseMetaData;
 import java.util.*;
 
 import static java.sql.Types.*;
@@ -159,6 +160,21 @@ public class DDLUtils {
         }
 
         return sorted;
+    }
+
+    public static DatabaseVersion getDatabaseVersion(JSqlClientImplementor client) {
+        return client.getConnectionManager().execute(connection -> {
+            try {
+                DatabaseMetaData metaData = connection.getMetaData();
+                int databaseMajorVersion = metaData.getDatabaseMajorVersion();
+                int databaseMinorVersion = metaData.getDatabaseMinorVersion();
+                String databaseProductVersion = metaData.getDatabaseProductVersion();
+                return new DatabaseVersion(databaseMajorVersion, databaseMinorVersion, databaseProductVersion);
+            } catch (Exception e) {
+                // cannot get database version, using latest as default
+                return DatabaseVersion.LATEST;
+            }
+        });
     }
 
     private static void dfs(

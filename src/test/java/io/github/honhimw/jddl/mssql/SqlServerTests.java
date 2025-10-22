@@ -19,6 +19,10 @@ import java.util.logging.Logger;
 
 public class SqlServerTests extends AbstractRealDBTests {
 
+    static {
+        Logger.getLogger("").setLevel(Level.OFF);
+    }
+
     @Override
     protected Dialect dialect() {
         return new SqlServerDialect();
@@ -32,9 +36,12 @@ public class SqlServerTests extends AbstractRealDBTests {
 
     @Override
     protected @NonNull Optional<JdbcDatabaseContainer<?>> testContainer() {
-        Logger logger = Logger.getLogger("com.microsoft.sqlserver.jdbc.internals.SQLServerConnection");
-        logger.setLevel(Level.OFF);
         MSSQLServerContainer mssql = new MSSQLServerContainer("mcr.microsoft.com/mssql/server:2022-latest");
         return Optional.of(mssql);
+    }
+
+    @Override
+    public void columnModifier() {
+        // do nothing
     }
 }

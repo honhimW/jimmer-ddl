@@ -261,6 +261,14 @@ public interface DDLDialect extends Dialect {
         return true;
     }
 
+    default String getAlterTableString() {
+        return "alter table";
+    }
+
+    default String getAddColumnString() {
+        return "add column";
+    }
+
     /**
      * SQLite only?
      */

@@ -1,12 +1,16 @@
 package io.github.honhimw.jddl;
 
+import org.babyfish.jimmer.meta.ImmutableProp;
 import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -15,6 +19,8 @@ import java.util.stream.Collectors;
  */
 
 public class DDLAutoRunner {
+
+    private static final Logger log = LoggerFactory.getLogger("jimmer.ddl.sql");
 
     private final JSqlClientImplementor client;
 
@@ -44,14 +50,12 @@ public class DDLAutoRunner {
             schemaCreator.init();
             switch (ddlAuto) {
                 case CREATE:
+                case CREATE_DROP:
                     create(schemaCreator, types);
                     break;
-                case CREATE_DROP: {
-                    // prefer drop manually
-                    // processDrop(schemaCreator, types);
-                    processCreate(schemaCreator, types);
+                case UPDATE:
+                    update(schemaCreator, types);
                     break;
-                }
             }
         }
     }
@@ -72,7 +76,22 @@ public class DDLAutoRunner {
 
     private void create(SchemaCreator schemaCreator, List<ImmutableType> types) {
         List<ImmutableType> nonExistsTypes = types.stream()
-            .filter(immutableType -> !schemas.getTableMap().containsKey(immutableType.getTableName(client.getMetadataStrategy())))
+            .filter(immutableType -> schemas.get(immutableType.getTableName(client.getMetadataStrategy())) == null)
+            .collect(Collectors.toList());
+        if (!nonExistsTypes.isEmpty()) {
+            processCreate(schemaCreator, nonExistsTypes);
+        }
+    }
+
+    private void update(SchemaCreator schemaCreator, List<ImmutableType> types) {
+        List<ImmutableType> existsTypes = types.stream()
+            .filter(immutableType -> schemas.get(immutableType.getTableName(client.getMetadataStrategy())) != null)
+            .collect(Collectors.toList());
+        if (!existsTypes.isEmpty()) {
+            processUpdate(existsTypes);
+        }
+        List<ImmutableType> nonExistsTypes = types.stream()
+            .filter(immutableType -> schemas.get(immutableType.getTableName(client.getMetadataStrategy())) == null)
             .collect(Collectors.toList());
         if (!nonExistsTypes.isEmpty()) {
             processCreate(schemaCreator, nonExistsTypes);
@@ -86,11 +105,53 @@ public class DDLAutoRunner {
             client.getConnectionManager().execute(connection -> {
                 try {
                     for (String sqlCreateString : sqlCreateStrings) {
+                        if (log.isDebugEnabled()) {
+                            log.debug(sqlCreateString);
+                        }
                         PreparedStatement preparedStatement = connection.prepareStatement(sqlCreateString);
                         preparedStatement.execute();
                     }
                 } catch (Exception e) {
                     throw new IllegalStateException("schema creation error.", e);
+                }
+                return null;
+            });
+        }
+    }
+
+    private void processUpdate(List<ImmutableType> existsTypes) {
+        List<String> sqlAddColumnStrings = new ArrayList<>();
+        for (ImmutableType existsType : existsTypes) {
+            String tableName = existsType.getTableName(client.getMetadataStrategy());
+            Map<String, ImmutableProp> allDefinitionProps = DDLUtils.allDefinitionProps(existsType);
+            List<ImmutableProp> nonExistsProps = new ArrayList<>();
+            allDefinitionProps.forEach((s, immutableProp) -> {
+                String columnName = DDLUtils.getName(immutableProp, client.getMetadataStrategy());
+                if (schemas.get(tableName, columnName) != null) {
+                    return;
+                }
+                nonExistsProps.add(immutableProp);
+            });
+            if (!nonExistsProps.isEmpty()) {
+                StandardAddColumnExporter standardAddColumnExporter = new StandardAddColumnExporter(client, databaseVersion);
+                for (ImmutableProp nonExistsProp : nonExistsProps) {
+                    List<String> sqlCreateStrings = standardAddColumnExporter.getSqlCreateStrings(new TypeProp(existsType, nonExistsProp));
+                    sqlAddColumnStrings.addAll(sqlCreateStrings);
+                }
+            }
+        }
+        if (!sqlAddColumnStrings.isEmpty()) {
+            client.getConnectionManager().execute(connection -> {
+                try {
+                    for (String sqlAddColumnString : sqlAddColumnStrings) {
+                        if (log.isDebugEnabled()) {
+                            log.debug(sqlAddColumnString);
+                        }
+                        PreparedStatement preparedStatement = connection.prepareStatement(sqlAddColumnString);
+                        preparedStatement.execute();
+                    }
+                } catch (Exception e) {
+                    throw new IllegalStateException("schema update error.", e);
                 }
                 return null;
             });
@@ -105,6 +166,9 @@ public class DDLAutoRunner {
             client.getConnectionManager().execute(connection -> {
                 try {
                     for (String sqlDropString : sqlDropStrings) {
+                        if (log.isDebugEnabled()) {
+                            log.debug(sqlDropString);
+                        }
                         PreparedStatement preparedStatement = connection.prepareStatement(sqlDropString);
                         preparedStatement.execute();
                     }

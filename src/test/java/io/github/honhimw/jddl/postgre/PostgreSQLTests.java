@@ -26,4 +26,9 @@ public class PostgreSQLTests extends AbstractRealDBTests {
         PostgreSQLContainer postgres = new PostgreSQLContainer("postgres:latest");
         return Optional.of(postgres);
     }
+
+    @Override
+    public void columnModifier() {
+        // do nothing
+    }
 }

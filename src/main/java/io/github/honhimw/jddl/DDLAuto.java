@@ -15,6 +15,10 @@ public enum DDLAuto {
      */
     CREATE_DROP,
     /**
+     * Update schema if necessary
+     */
+    UPDATE,
+    /**
      * Drop the schema at the end of the session.
      */
     DROP,

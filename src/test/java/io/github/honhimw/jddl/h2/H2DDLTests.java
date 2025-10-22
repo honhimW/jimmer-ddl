@@ -17,6 +17,7 @@ import javax.sql.DataSource;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -52,7 +53,6 @@ public class H2DDLTests extends AbstractDDLTest {
 
     DataSource newDataSource(Mode mode) {
         JdbcDataSource dataSource = new JdbcDataSource();
-
         dataSource.setURL(String.format("jdbc:h2:mem:test;MODE\\=%s", mode.mode));
         return dataSource;
     }

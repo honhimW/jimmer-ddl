@@ -114,4 +114,8 @@ public class SqlServerDDLDialect extends DefaultDDLDialect {
         return isSameOrAfter(16);
     }
 
+    @Override
+    public String getAddColumnString() {
+        return "add";
+    }
 }

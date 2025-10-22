@@ -1,13 +1,8 @@
 package io.github.honhimw.jddl;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.POJONode;
 import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
+import org.jspecify.annotations.NullUnmarked;
 import org.jspecify.annotations.Nullable;
 
 import java.sql.DatabaseMetaData;
@@ -15,7 +10,6 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -34,20 +28,13 @@ public class SchemaValidator {
     @Nullable
     private DatabaseVersion databaseVersion;
 
+    public JSqlClientImplementor getClient() {
+        return client;
+    }
 
     public DatabaseVersion getDatabaseVersion() {
         if (databaseVersion == null) {
-            databaseVersion = client.getConnectionManager().execute(connection -> {
-                try {
-                    DatabaseMetaData metaData = connection.getMetaData();
-                    int databaseMajorVersion = metaData.getDatabaseMajorVersion();
-                    int databaseMinorVersion = metaData.getDatabaseMinorVersion();
-                    String databaseProductVersion = metaData.getDatabaseProductVersion();
-                    return new DatabaseVersion(databaseMajorVersion, databaseMinorVersion, databaseProductVersion);
-                } catch (Exception e) {
-                    throw new IllegalStateException("cannot get database version", e);
-                }
-            });
+            databaseVersion = DDLUtils.getDatabaseVersion(client);
         }
         return databaseVersion;
     }
@@ -60,58 +47,62 @@ public class SchemaValidator {
                 for (ImmutableType immutableType : immutableTypes) {
                     String tableSchema = client.getMetadataStrategy().getSchemaStrategy().tableSchema(immutableType);
                     String tableName = immutableType.getTableName(client.getMetadataStrategy());
+                    if (metaData.storesUpperCaseIdentifiers()) {
+                        tableName = tableName.toUpperCase();
+                    } else if (metaData.storesLowerCaseIdentifiers()) {
+                        tableName = tableName.toLowerCase();
+                    }
                     ResultSet table = metaData.getTables(null, tableSchema, tableName, null);
                     List<Map<String, Object>> result = toMap(table);
 
                     if (!result.isEmpty()) {
                         Map<String, Object> first = result.get(0);
                         List<Column> columns = new ArrayList<>();
-                        ArrayNode columnResult = toNode(metaData.getColumns(null, tableSchema, tableName, null));
                         List<Map<String, Object>> columnResult2 = toMap(metaData.getColumns(null, tableSchema, tableName, null));
                         for (Map<String, Object> map : columnResult2) {
                             columns.add(
                                 new Column(
-                                    (String) map.get("TABLE_CAT"),
-                                    (String) map.get("TABLE_SCHEM"),
-                                    (String) map.get("TABLE_NAME"),
-                                    (String) map.get("COLUMN_NAME"),
-                                    (Integer) map.get("DATA_TYPE"),
-                                    (String) map.get("TYPE_NAME"),
-                                    (Integer) map.get("COLUMN_SIZE"),
-                                    (Integer) map.get("DECIMAL_DIGITS"),
-                                    (Integer) map.get("NUM_PREC_RADIX"),
-                                    (Integer) map.get("NULLABLE"),
-                                    (String) map.get("REMARKS"),
-                                    (String) map.get("COLUMN_DEF"),
-                                    (Integer) map.get("CHAR_OCTET_LENGTH"),
-                                    (Integer) map.get("ORDINAL_POSITION"),
-                                    (String) map.get("IS_NULLABLE"),
-                                    (String) map.get("SCOPE_CATALOG"),
-                                    (String) map.get("SCOPE_SCHEMA"),
-                                    (String) map.get("SCOPE_TABLE"),
-                                    (Short) map.get("SOURCE_DATA_TYPE"),
-                                    (String) map.get("IS_AUTOINCREMENT"),
-                                    (String) map.get("IS_GENERATEDCOLUMN")
+                                    cast(map.get("TABLE_CAT"), String.class),
+                                    cast(map.get("TABLE_SCHEM"), String.class),
+                                    cast(map.get("TABLE_NAME"), String.class),
+                                    cast(map.get("COLUMN_NAME"), String.class),
+                                    cast(map.get("DATA_TYPE"), Integer.class),
+                                    cast(map.get("TYPE_NAME"), String.class),
+                                    cast(map.get("COLUMN_SIZE"), Integer.class),
+                                    cast(map.get("DECIMAL_DIGITS"), Integer.class),
+                                    cast(map.get("NUM_PREC_RADIX"), Integer.class),
+                                    cast(map.get("NULLABLE"), Integer.class),
+                                    cast(map.get("NULLABLE"), String.class),
+                                    cast(map.get("COLUMN_DEF"), String.class),
+                                    cast(map.get("CHAR_OCTET_LENGTH"), Integer.class),
+                                    cast(map.get("ORDINAL_POSITION"), Integer.class),
+                                    cast(map.get("IS_NULLABLE"), String.class),
+                                    cast(map.get("SCOPE_CATALOG"), String.class),
+                                    cast(map.get("SCOPE_SCHEMA"), String.class),
+                                    cast(map.get("SCOPE_TABLE"), String.class),
+                                    cast(map.get("SOURCE_DATA_TYPE"), Short.class),
+                                    cast(map.get("IS_AUTOINCREMENT"), String.class),
+                                    cast(map.get("IS_GENERATEDCOLUMN"), String.class)
                                 )
                             );
                         }
                         tables.add(new Table(
-                            (String) first.get("TABLE_CAT"),
-                            (String) first.get("TABLE_SCHEM"),
-                            (String) first.get("TABLE_NAME"),
-                            (String) first.get("TABLE_TYPE"),
-                            (String) first.get("REMARKS"),
-                            (String) first.get("TYPE_CAT"),
-                            (String) first.get("TYPE_SCHEM"),
-                            (String) first.get("TYPE_NAME"),
-                            (String) first.get("SELF_REFERENCING_COL_NAME"),
-                            (String) first.get("REF_GENERATION"),
+                            cast(first.get("TABLE_CAT"), String.class),
+                            cast(first.get("TABLE_SCHEM"), String.class),
+                            cast(first.get("TABLE_NAME"), String.class),
+                            cast(first.get("TABLE_TYPE"), String.class),
+                            cast(first.get("REMARKS"), String.class),
+                            cast(first.get("TYPE_CAT"), String.class),
+                            cast(first.get("TYPE_SCHEM"), String.class),
+                            cast(first.get("TYPE_NAME"), String.class),
+                            cast(first.get("SELF_REFERENCING_COL_NAME"), String.class),
+                            cast(first.get("REF_GENERATION"), String.class),
                             columns
                         ));
 
                     }
                 }
-                return new Schemas(tables);
+                return new Schemas(tables, metaData.storesLowerCaseIdentifiers(), metaData.storesUpperCaseIdentifiers(), metaData.storesMixedCaseIdentifiers());
             } catch (Exception e) {
                 throw new IllegalStateException("cannot get tables", e);
             }
@@ -119,6 +110,7 @@ public class SchemaValidator {
 
     }
 
+    @NullUnmarked
     public static final class Table {
         private final String tableCatalog;
         private final String tableSchema;
@@ -234,6 +226,7 @@ public class SchemaValidator {
 
     }
 
+    @NullUnmarked
     public static final class Column {
         private final String tableCatalog;
         private final String tableSchema;
@@ -432,18 +425,51 @@ public class SchemaValidator {
     }
 
     public static class Schemas {
-        public static final Schemas EMPTY = new Schemas(Collections.emptyList());
+        public static final Schemas EMPTY = new Schemas(Collections.emptyList(), false, false, true);
 
         private final List<Table> tables;
         private final Map<String, Table> tableMap;
+        public final boolean storesLowerCaseIdentifiers;
+        public final boolean storesUpperCaseIdentifiers;
+        public final boolean storesMixedCaseIdentifiers;
 
-        private Schemas(List<Table> tables) {
+        private Schemas(List<Table> tables, boolean storesLowerCaseIdentifiers, boolean storesUpperCaseIdentifiers, boolean storesMixedCaseIdentifiers) {
             this.tables = tables;
             this.tableMap = tables.stream().collect(Collectors.toMap(Table::tableName, table -> table));
+            this.storesLowerCaseIdentifiers = storesLowerCaseIdentifiers;
+            this.storesUpperCaseIdentifiers = storesUpperCaseIdentifiers;
+            this.storesMixedCaseIdentifiers = storesMixedCaseIdentifiers;
         }
 
+        @Nullable
         public Table get(String tableName) {
+            if (storesLowerCaseIdentifiers) {
+                tableName = tableName.toLowerCase();
+            } else if (storesUpperCaseIdentifiers) {
+                tableName = tableName.toUpperCase();
+            }
             return tableMap.get(tableName);
+        }
+
+        @Nullable
+        public Column get(String tableName, String columnName) {
+            if (storesLowerCaseIdentifiers) {
+                tableName = tableName.toLowerCase();
+                columnName = columnName.toLowerCase();
+            } else if (storesUpperCaseIdentifiers) {
+                tableName = tableName.toUpperCase();
+                columnName = columnName.toUpperCase();
+            }
+            Table table = tableMap.get(tableName);
+            if (table != null) {
+                List<Column> columns = table.columns();
+                for (Column column : columns) {
+                    if (columnName.equals(column.columnName())) {
+                        return column;
+                    }
+                }
+            }
+            return null;
         }
 
         public List<Table> getTables() {
@@ -452,21 +478,6 @@ public class SchemaValidator {
 
         public Map<String, Table> getTableMap() {
             return tableMap;
-        }
-    }
-
-    @Nullable
-    private <R> R getNullable(JsonNode node, Function<JsonNode, R> function) {
-        if (node.isNull() || node.isMissingNode()) {
-            return null;
-        } else {
-            if (node.isPojo() && node instanceof POJONode) {
-                POJONode pojoNode = (POJONode) node;
-                if (pojoNode.getPojo() == null) {
-                    return null;
-                }
-            }
-            return function.apply(node);
         }
     }
 
@@ -492,26 +503,25 @@ public class SchemaValidator {
         return resultList;
     }
 
-    private static ArrayNode toNode(ResultSet resultSet) throws SQLException {
-        ObjectMapper mapper = new JsonMapper();
-        ArrayNode arrayNode = mapper.createArrayNode();
-        ResultSetMetaData metaData = resultSet.getMetaData();
-        int columnCount = metaData.getColumnCount();
-        String[] columnNames = new String[columnCount + 1];
-        for (int i = 1; i <= columnCount; i++) {
-            columnNames[i] = metaData.getColumnLabel(i);
+    @SuppressWarnings("unchecked")
+    private static <T> @Nullable T cast(@Nullable Object value, Class<T> type) {
+        if (value == null) {
+            return null;
         }
-
-        while (resultSet.next()) {
-            ObjectNode objectNode = mapper.createObjectNode();
-            for (int i = 1; i <= columnCount; i++) {
-                Object columnValue = resultSet.getObject(i);
-                objectNode.putPOJO(columnNames[i], columnValue);
+        if (type.isAssignableFrom(value.getClass())) {
+            return (T) value;
+        }
+        if (type == String.class) {
+            return (T) String.valueOf(value);
+        }
+        if (type == Integer.class || type == int.class) {
+            if (value instanceof String) {
+                return (T) Integer.valueOf((String) value);
+            } else if (value instanceof Number) {
+                return (T) Integer.valueOf(((Number) value).intValue());
             }
-            arrayNode.add(objectNode);
         }
-
-        return arrayNode;
+        return (T) value;
     }
 
 }

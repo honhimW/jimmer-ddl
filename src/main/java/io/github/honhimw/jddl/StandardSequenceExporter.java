@@ -21,18 +21,7 @@ public class StandardSequenceExporter implements Exporter<ImmutableProp> {
 
     public StandardSequenceExporter(JSqlClientImplementor client) {
         this.client = client;
-        DatabaseVersion databaseVersion = client.getConnectionManager().execute(connection -> {
-            try {
-                DatabaseMetaData metaData = connection.getMetaData();
-                int databaseMajorVersion = metaData.getDatabaseMajorVersion();
-                int databaseMinorVersion = metaData.getDatabaseMinorVersion();
-                String databaseProductVersion = metaData.getDatabaseProductVersion();
-                return new DatabaseVersion(databaseMajorVersion, databaseMinorVersion, databaseProductVersion);
-            } catch (Exception e) {
-                // cannot get database version, using latest as default
-                return DatabaseVersion.LATEST;
-            }
-        });
+        DatabaseVersion databaseVersion = DDLUtils.getDatabaseVersion(client);
         this.dialect = DDLDialect.of(client.getDialect(), databaseVersion);
     }
 
