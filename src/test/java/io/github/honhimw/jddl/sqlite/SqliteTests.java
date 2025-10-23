@@ -46,4 +46,9 @@ public class SqliteTests extends AbstractRealDBTests {
                 break;
         }
     }
+
+    @Override
+    public void columnModifier() {
+        // do nothing
+    }
 }

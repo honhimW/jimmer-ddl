@@ -27,8 +27,4 @@ public class PostgreSQLTests extends AbstractRealDBTests {
         return Optional.of(postgres);
     }
 
-    @Override
-    public void columnModifier() {
-        // do nothing
-    }
 }
