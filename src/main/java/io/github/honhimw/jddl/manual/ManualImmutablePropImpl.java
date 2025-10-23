@@ -1,4 +1,4 @@
-package io.github.honhimw.jddl.fake;
+package io.github.honhimw.jddl.manual;
 
 import org.babyfish.jimmer.jackson.Converter;
 import org.babyfish.jimmer.jackson.ConverterMetadata;
@@ -20,7 +20,7 @@ import java.util.List;
  * @author honhimW
  */
  
-public class FakeImmutablePropImpl implements ImmutableProp {
+public class ManualImmutablePropImpl implements ImmutableProp {
     
     public ImmutableType declaringType;
     
@@ -432,6 +432,6 @@ public class FakeImmutablePropImpl implements ImmutableProp {
 
     @Override
     public ImmutableProp toOriginal() {
-        return original;
+        return original != null ? original : this;
     }
 }

@@ -1,7 +1,7 @@
 package io.github.honhimw.jddl;
 
 import io.github.honhimw.jddl.anno.TableDef;
-import io.github.honhimw.jddl.fake.FakeImmutableTypeImpl;
+import io.github.honhimw.jddl.manual.ManualImmutableTypeImpl;
 import org.babyfish.jimmer.meta.ImmutableProp;
 import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
@@ -47,8 +47,8 @@ class BufferContext {
         this.definitionProps = new ArrayList<>();
         this.allDefinitionProps = DDLUtils.allDefinitionProps(tableType);
         this.definitionProps.addAll(this.allDefinitionProps.values());
-        if (tableType instanceof FakeImmutableTypeImpl) {
-            FakeImmutableTypeImpl _tableType = (FakeImmutableTypeImpl) tableType;
+        if (tableType instanceof ManualImmutableTypeImpl) {
+            ManualImmutableTypeImpl _tableType = (ManualImmutableTypeImpl) tableType;
             tableDef = _tableType.getAnnotation(TableDef.class);
         } else {
             if (tableType.getJavaClass().isAnnotationPresent(TableDef.class)) {

@@ -13,7 +13,7 @@ import java.util.List;
  * @author honhimW
  */
 
-public class StandardAddColumnExporter implements Exporter<TypeProp> {
+public class StandardAddColumnExporter implements Exporter<ImmutableProp> {
 
     protected final JSqlClientImplementor client;
 
@@ -31,8 +31,7 @@ public class StandardAddColumnExporter implements Exporter<TypeProp> {
     }
 
     @Override
-    public List<String> getSqlCreateStrings(TypeProp exportable) {
-        ImmutableProp prop = exportable.prop;
+    public List<String> getSqlCreateStrings(ImmutableProp prop) {
         if (prop.isId() || !prop.isColumnDefinition()) {
             return Collections.emptyList();
         }
@@ -43,7 +42,7 @@ public class StandardAddColumnExporter implements Exporter<TypeProp> {
         StringBuilder buf = new StringBuilder();
         buf
             .append(dialect.getAlterTableString()).append(' ')
-            .append(exportable.type.getTableName(client.getMetadataStrategy())).append(' ')
+            .append(prop.getDeclaringType().getTableName(client.getMetadataStrategy())).append(' ')
             .append(dialect.getAddColumnString()).append(' ')
             .append(DDLUtils.getName(prop, client.getMetadataStrategy())).append(' ')
         ;
@@ -71,13 +70,13 @@ public class StandardAddColumnExporter implements Exporter<TypeProp> {
     }
 
     @Override
-    public List<String> getSqlDropStrings(TypeProp exportable) {
+    public List<String> getSqlDropStrings(ImmutableProp prop) {
         StringBuilder buf = new StringBuilder();
         buf
             .append(dialect.getAlterTableString()).append(' ')
-            .append(exportable.type.getTableName(client.getMetadataStrategy()))
+            .append(prop.getDeclaringType().getTableName(client.getMetadataStrategy()))
             .append(" drop column ")
-            .append(DDLUtils.getName(exportable.prop, client.getMetadataStrategy()));
+            .append(DDLUtils.getName(prop, client.getMetadataStrategy()));
         return Collections.singletonList(buf.toString());
     }
 

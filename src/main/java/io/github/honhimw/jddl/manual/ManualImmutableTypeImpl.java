@@ -1,4 +1,4 @@
-package io.github.honhimw.jddl.fake;
+package io.github.honhimw.jddl.manual;
 
 import org.babyfish.jimmer.Draft;
 import org.babyfish.jimmer.meta.*;
@@ -20,7 +20,7 @@ import java.util.function.BiFunction;
  * @author honhimW
  */
 
-public class FakeImmutableTypeImpl implements ImmutableType {
+public class ManualImmutableTypeImpl implements ImmutableType {
 
     @SuppressWarnings("unchecked")
     public @Nullable <A extends Annotation> A getAnnotation(Class<A> annotationType) {

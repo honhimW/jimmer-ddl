@@ -51,9 +51,22 @@ public class SqlServerDDLDialect extends DefaultDDLDialect {
             case INTEGER:
                 //it's called 'int' not 'integer'
                 return "int";
+            // there is no 'double' type in SQL server
+            // but 'float' is double precision by default
             case DOUBLE:
                 return "float";
-
+            // Prefer 'varchar(max)' and 'varbinary(max)' to
+            // the deprecated TEXT and IMAGE types. Note that
+            // the length of a VARCHAR or VARBINARY column must
+            // be either between 1 and 8000 or exactly MAX, and
+            // the length of an NVARCHAR column must be either
+            // between 1 and 4000 or exactly MAX. (HHH-3965)
+            case CLOB:
+                return "varchar(max)";
+            case NCLOB:
+                return "nvarchar(max)";
+            case BLOB:
+                return "varbinary(max)";
             case DATE:
                 return "date";
             case TIME:
@@ -63,13 +76,6 @@ public class SqlServerDDLDialect extends DefaultDDLDialect {
             case TIME_WITH_TIMEZONE:
             case TIMESTAMP_WITH_TIMEZONE:
                 return DDLUtils.replace("datetimeoffset($p)", null, precision, null);
-
-            case BLOB:
-                return "varbinary(max)";
-            case CLOB:
-                return "varchar(max)";
-            case NCLOB:
-                return "nvarchar(max)";
 
             case SQLXML:
                 return "xml";

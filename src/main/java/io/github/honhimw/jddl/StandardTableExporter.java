@@ -31,6 +31,8 @@ import java.util.stream.Collectors;
 
 public class StandardTableExporter implements Exporter<ImmutableType> {
 
+    protected static final Pattern COLUMN_PATH_PATTERN = Pattern.compile("#(?<column>[\\w.]+)");
+
     protected final JSqlClientImplementor client;
 
     protected final DDLDialect dialect;
@@ -180,8 +182,7 @@ public class StandardTableExporter implements Exporter<ImmutableType> {
                         bufferContext.buf.append("constraint ").append(name).append(' ');
                     }
                     String constraint = check.value();
-                    Pattern pattern = Pattern.compile("#(?<column>[\\w.]+)");
-                    Matcher matcher = pattern.matcher(constraint);
+                    Matcher matcher = COLUMN_PATH_PATTERN.matcher(constraint);
                     StringBuffer buffer = new StringBuffer();
                     while (matcher.find()) {
                         String column = matcher.group("column");

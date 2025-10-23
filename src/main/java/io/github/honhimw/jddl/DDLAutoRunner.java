@@ -32,7 +32,7 @@ public class DDLAutoRunner {
 
     private SchemaValidator.Schemas schemas = SchemaValidator.Schemas.EMPTY;
 
-    public DDLAutoRunner(JSqlClientImplementor client, DDLAuto ddlAuto, List<ImmutableType> types) {
+    public DDLAutoRunner(JSqlClientImplementor client, DDLAuto ddlAuto, List<? extends ImmutableType> types) {
         this.client = client;
         this.ddlAuto = ddlAuto;
         this.types = new ArrayList<>(types);
@@ -135,7 +135,7 @@ public class DDLAutoRunner {
             if (!nonExistsProps.isEmpty()) {
                 StandardAddColumnExporter standardAddColumnExporter = new StandardAddColumnExporter(client, databaseVersion);
                 for (ImmutableProp nonExistsProp : nonExistsProps) {
-                    List<String> sqlCreateStrings = standardAddColumnExporter.getSqlCreateStrings(new TypeProp(existsType, nonExistsProp));
+                    List<String> sqlCreateStrings = standardAddColumnExporter.getSqlCreateStrings(nonExistsProp);
                     sqlAddColumnStrings.addAll(sqlCreateStrings);
                 }
             }

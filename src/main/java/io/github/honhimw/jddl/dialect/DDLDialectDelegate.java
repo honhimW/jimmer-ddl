@@ -224,6 +224,22 @@ public class DDLDialectDelegate implements DDLDialect {
     }
 
     @Override
+    public String getAlterTableString() {
+        return delegate.getAlterTableString();
+    }
+
+    @Override
+    public String getAddColumnString() {
+        return delegate.getAddColumnString();
+    }
+
+    @org.jetbrains.annotations.Nullable
+    @Override
+    public Integer getForEachBatchSize() {
+        return delegate.getForEachBatchSize();
+    }
+
+    @Override
     public String jdbcParameter(Class<?> sqlType) {
         return delegate.jdbcParameter(sqlType);
     }

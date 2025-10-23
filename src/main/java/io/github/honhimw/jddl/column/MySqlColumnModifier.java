@@ -23,15 +23,15 @@ public class MySqlColumnModifier extends ColumnModifier {
             .append(" change ")
             .append(dialect.quote(column)).append(' ')
             .append(dialect.quote(resolver.name())).append(' ')
-            .append(resolver.columnType()).append(' ');
+            .append(resolver.columnType());
         if (!resolver.nullable()) {
-            buf.append(nullableString(resolver.nullable())).append(' ');
+            buf.append(" not null");
         }
         if (resolver.defaultValue() != null) {
-            buf.append("default ").append(resolver.defaultValue()).append(' ');
+            buf.append(" default ").append(resolver.defaultValue());
         }
         if (!resolver.comment().isEmpty()) {
-            buf.append("comment '").append(resolver.comment()).append("'");
+            buf.append(dialect.getColumnComment(resolver.comment()));
         }
         List<String> sql = new ArrayList<>();
         sql.add(buf.toString());

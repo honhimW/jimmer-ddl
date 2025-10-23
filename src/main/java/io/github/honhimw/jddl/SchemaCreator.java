@@ -1,8 +1,8 @@
 package io.github.honhimw.jddl;
 
 import io.github.honhimw.jddl.anno.*;
-import io.github.honhimw.jddl.fake.FakeImmutablePropImpl;
-import io.github.honhimw.jddl.fake.FakeImmutableTypeImpl;
+import io.github.honhimw.jddl.manual.ManualImmutablePropImpl;
+import io.github.honhimw.jddl.manual.ManualImmutableTypeImpl;
 import org.babyfish.jimmer.meta.ImmutableProp;
 import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.meta.TargetLevel;
@@ -124,7 +124,7 @@ public class SchemaCreator implements Exporter<@NonNull Collection<ImmutableType
                             String inverseJoinColumnName = client.getMetadataStrategy().getNamingStrategy().middleTableTargetRefColumnName(prop);
                             io.github.honhimw.jddl.anno.MiddleTable annotation = prop.getAnnotation(io.github.honhimw.jddl.anno.MiddleTable.class);
 
-                            FakeImmutableTypeImpl fakeImmutableType = new FakeImmutableTypeImpl();
+                            ManualImmutableTypeImpl fakeImmutableType = new ManualImmutableTypeImpl();
                             fakeImmutableType.tableName = middleTableName;
                             fakeImmutableType.javaClass = Object.class;
                             fakeImmutableType.props = new LinkedHashMap<>();
@@ -146,49 +146,17 @@ public class SchemaCreator implements Exporter<@NonNull Collection<ImmutableType
                                     String comment = tableDef.comment();
                                     String tableType = tableDef.tableType();
                                     Unique[] newUniques = new Unique[uniques.length + 1];
-                                    newUniques[0] = new DDLUtils.DefaultUnique() {
-                                        @Override
-                                        public String[] columns() {
-                                            return new String[] {joinColumnName, inverseJoinColumnName};
-                                        }
-
-                                        @Override
-                                        public Kind kind() {
-                                            return Kind.NAME;
-                                        }
-                                    };
+                                    DDLUtils.DefaultUnique defaultUnique = new DDLUtils.DefaultUnique();
+                                    defaultUnique.columns = new String[]{joinColumnName, inverseJoinColumnName};
+                                    defaultUnique.kind = Kind.NAME;
                                     System.arraycopy(uniques, 0, newUniques, 1, uniques.length);
-                                    tableDef = new TableDef() {
-                                        @Override
-                                        public Unique[] uniques() {
-                                            return newUniques;
-                                        }
-
-                                        @Override
-                                        public Index[] indexes() {
-                                            return indexes;
-                                        }
-
-                                        @Override
-                                        public String comment() {
-                                            return comment;
-                                        }
-
-                                        @Override
-                                        public Check[] checks() {
-                                            return checks;
-                                        }
-
-                                        @Override
-                                        public String tableType() {
-                                            return tableType;
-                                        }
-
-                                        @Override
-                                        public Class<? extends Annotation> annotationType() {
-                                            return TableDef.class;
-                                        }
-                                    };
+                                    DDLUtils.DefaultTableDef defaultTableDef = new DDLUtils.DefaultTableDef();
+                                    defaultTableDef.uniques = newUniques;
+                                    defaultTableDef.indexes = indexes;
+                                    defaultTableDef.comment = comment;
+                                    defaultTableDef.checks = checks;
+                                    defaultTableDef.tableType = tableType;
+                                    tableDef = defaultTableDef;
                                 }
                                 useRealForeignKey = annotation.useRealForeignKey();
                                 joinColumnRelation = annotation.joinColumnForeignKey();
@@ -202,7 +170,7 @@ public class SchemaCreator implements Exporter<@NonNull Collection<ImmutableType
                             }
                             fakeImmutableType.annotations = new Annotation[]{tableDef};
 
-                            FakeImmutablePropImpl id = new FakeImmutablePropImpl();
+                            ManualImmutablePropImpl id = new ManualImmutablePropImpl();
                             id.name = "id";
                             Map<String, ImmutableProp> props;
                             if (useAutoId) {
@@ -219,7 +187,7 @@ public class SchemaCreator implements Exporter<@NonNull Collection<ImmutableType
                                 id.isColumnDefinition = false;
                                 id.annotations = new Annotation[]{new DDLUtils.DefaultGeneratedValue()};
                                 id.isEmbedded = true;
-                                FakeImmutableTypeImpl embeddedIdType = new FakeImmutableTypeImpl();
+                                ManualImmutableTypeImpl embeddedIdType = new ManualImmutableTypeImpl();
                                 id.targetType = embeddedIdType;
                                 embeddedIdType.props = new LinkedHashMap<>();
                                 embeddedIdType.selectableProps = embeddedIdType.props;
@@ -228,33 +196,27 @@ public class SchemaCreator implements Exporter<@NonNull Collection<ImmutableType
                                 fakeImmutableType.idProp = id;
                             }
 
-                            FakeImmutablePropImpl fakeJoinProp = new FakeImmutablePropImpl();
+                            ManualImmutablePropImpl fakeJoinProp = new ManualImmutablePropImpl();
                             fakeJoinProp.name = joinColumnName;
                             fakeJoinProp.returnClass = joinProp.getReturnClass();
                             fakeJoinProp.isColumnDefinition = true;
                             if (useRealForeignKey) {
-                                fakeJoinProp.annotations = new Annotation[]{new DDLUtils.DefaultColumnDef() {
-                                    @Override
-                                    public Relation foreignKey() {
-                                        return joinColumnRelation;
-                                    }
-                                }};
+                                DDLUtils.DefaultColumnDef defaultColumnDef = new DDLUtils.DefaultColumnDef();
+                                defaultColumnDef.foreignKey = joinColumnRelation;
+                                fakeJoinProp.annotations = new Annotation[]{defaultColumnDef};
                                 fakeJoinProp.isTargetForeignKeyReal = true;
                                 fakeJoinProp.targetType = immutableType;
                             }
                             props.put(fakeJoinProp.name, fakeJoinProp);
 
-                            FakeImmutablePropImpl fakeInverseJoin = new FakeImmutablePropImpl();
+                            ManualImmutablePropImpl fakeInverseJoin = new ManualImmutablePropImpl();
                             fakeInverseJoin.name = inverseJoinColumnName;
                             fakeInverseJoin.returnClass = inverseJoinProp.getReturnClass();
                             fakeInverseJoin.isColumnDefinition = true;
                             if (useRealForeignKey) {
-                                fakeInverseJoin.annotations = new Annotation[]{new DDLUtils.DefaultColumnDef() {
-                                    @Override
-                                    public Relation foreignKey() {
-                                        return inverseJoinColumnRelation;
-                                    }
-                                }};
+                                DDLUtils.DefaultColumnDef defaultColumnDef = new DDLUtils.DefaultColumnDef();
+                                defaultColumnDef.foreignKey = inverseJoinColumnRelation;
+                                fakeInverseJoin.annotations = new Annotation[]{defaultColumnDef};
                                 fakeInverseJoin.isTargetForeignKeyReal = true;
                                 fakeInverseJoin.targetType = prop.getTargetType();
                             }

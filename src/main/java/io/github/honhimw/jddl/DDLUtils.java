@@ -201,55 +201,65 @@ public class DDLUtils {
     }
 
     public static class DefaultColumnDef implements ColumnDef {
+        public Nullable nullable = Nullable.NONE;
+        public String sqlType = "";
+        public int jdbcType = OTHER;
+        public long length = -1;
+        public int precision = -1;
+        public int scale = -1;
+        public String defaultValue = "";
+        public String comment = "";
+        public String definition = "";
+        public Relation foreignKey = new DefaultRelation();
 
         @Override
         public Nullable nullable() {
-            return Nullable.NONE;
+            return nullable;
         }
 
         @Override
         public String sqlType() {
-            return "";
+            return sqlType;
         }
 
         @Override
         public int jdbcType() {
-            return OTHER;
+            return jdbcType;
         }
 
         @Override
         public long length() {
-            return -1;
+            return length;
         }
 
         @Override
         public int precision() {
-            return -1;
+            return precision;
         }
 
         @Override
         public int scale() {
-            return -1;
+            return scale;
         }
 
         @Override
         public String defaultValue() {
-            return "";
+            return defaultValue;
         }
 
         @Override
         public String comment() {
-            return "";
+            return comment;
         }
 
         @Override
         public String definition() {
-            return "";
+            return definition;
         }
 
         @Override
         public Relation foreignKey() {
-            return new DefaultRelation();
+            return foreignKey;
         }
 
         @Override
@@ -259,24 +269,29 @@ public class DDLUtils {
     }
 
     public static class DefaultRelation implements Relation {
+        public String name = "";
+        public String definition = "";
+        public OnDeleteAction action = OnDeleteAction.NONE;
+        public Class<? extends ConstraintNamingStrategy> naming = ConstraintNamingStrategy.class;
+
         @Override
         public String name() {
-            return "";
+            return name;
         }
 
         @Override
         public String definition() {
-            return "";
+            return definition;
         }
 
         @Override
         public OnDeleteAction action() {
-            return OnDeleteAction.NONE;
+            return action;
         }
 
         @Override
         public Class<? extends ConstraintNamingStrategy> naming() {
-            return ConstraintNamingStrategy.class;
+            return naming;
         }
 
         @Override
@@ -286,24 +301,28 @@ public class DDLUtils {
     }
 
     public static class DefaultGeneratedValue implements GeneratedValue {
+        public GenerationType strategy = GenerationType.AUTO;
+        public Class<? extends UserIdGenerator<?>> generatorType = UserIdGenerator.None.class;
+        public String generatorRef = "";
+        public String sequenceName = "";
         @Override
         public GenerationType strategy() {
-            return GenerationType.AUTO;
+            return strategy;
         }
 
         @Override
         public Class<? extends UserIdGenerator<?>> generatorType() {
-            return UserIdGenerator.None.class;
+            return generatorType;
         }
 
         @Override
         public String generatorRef() {
-            return "";
+            return generatorRef;
         }
 
         @Override
         public String sequenceName() {
-            return "";
+            return sequenceName;
         }
 
         @Override
@@ -313,29 +332,35 @@ public class DDLUtils {
     }
 
     public static class DefaultTableDef implements TableDef {
+        public Unique[] uniques = new Unique[0];
+        public Index[] indexes = new Index[0];
+        public String comment = "";
+        public Check[] checks = new Check[0];
+        public String tableType = "";
+
         @Override
         public Unique[] uniques() {
-            return new Unique[0];
+            return uniques;
         }
 
         @Override
         public Index[] indexes() {
-            return new Index[0];
+            return indexes;
         }
 
         @Override
         public String comment() {
-            return "";
+            return comment;
         }
 
         @Override
         public Check[] checks() {
-            return new Check[0];
+            return checks;
         }
 
         @Override
         public String tableType() {
-            return "";
+            return tableType;
         }
 
         @Override
@@ -344,25 +369,105 @@ public class DDLUtils {
         }
     }
 
-    public static abstract class DefaultUnique implements Unique {
+    public static class DefaultUnique implements Unique {
+        public String name = "";
+        public String[] columns;
+        public Kind kind = Kind.PATH;
+        public Class<? extends ConstraintNamingStrategy> naming = ConstraintNamingStrategy.class;
+
+        public DefaultUnique(String... columns) {
+            this.columns = columns;
+        }
+
         @Override
         public String name() {
-            return "";
+            return name;
+        }
+
+        @Override
+        public String[] columns() {
+            return columns;
         }
 
         @Override
         public Kind kind() {
-            return Kind.PATH;
+            return kind;
         }
 
         @Override
         public Class<? extends ConstraintNamingStrategy> naming() {
-            return ConstraintNamingStrategy.class;
+            return naming;
         }
 
         @Override
         public Class<? extends Annotation> annotationType() {
             return Unique.class;
+        }
+    }
+
+    public static class DefaultIndex implements Index {
+        public String name = "";
+        public String[] columns;
+        public boolean unique = false;
+        public Kind kind = Kind.PATH;
+        public Class<? extends ConstraintNamingStrategy> naming = ConstraintNamingStrategy.class;
+
+        public DefaultIndex(String... columns) {
+            this.columns = columns;
+        }
+
+        @Override
+        public String name() {
+            return name;
+        }
+
+        @Override
+        public String[] columns() {
+            return columns;
+        }
+
+        @Override
+        public boolean unique() {
+            return unique;
+        }
+
+        @Override
+        public Kind kind() {
+            return kind;
+        }
+
+        @Override
+        public Class<? extends ConstraintNamingStrategy> naming() {
+            return naming;
+        }
+
+        @Override
+        public Class<? extends Annotation> annotationType() {
+            return Index.class;
+        }
+    }
+
+    public static class DefaultCheck implements Check {
+        public String name = "";
+        public String value;
+
+        public DefaultCheck(String value) {
+            this.value = value;
+        }
+
+        @Override
+        public String name() {
+            return name;
+        }
+
+        @Override
+        public String value() {
+            return value;
+        }
+
+        @Override
+        public Class<? extends Annotation> annotationType() {
+            return Check.class;
         }
     }
 

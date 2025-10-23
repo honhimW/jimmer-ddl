@@ -105,18 +105,21 @@ public abstract class DefaultDDLDialect implements DDLDialect {
             case VARCHAR:
                 return DDLUtils.replace("varchar($l)", length, null, null);
             case CLOB:
+            case LONGVARCHAR:
                 return "clob";
             case NCHAR:
                 return DDLUtils.replace("nchar($l)", length, null, null);
             case NVARCHAR:
                 return DDLUtils.replace("nvarchar($l)", length, null, null);
             case NCLOB:
+            case LONGNVARCHAR:
                 return "nclob";
             case BINARY:
                 return DDLUtils.replace("binary($l)", length, null, null);
             case VARBINARY:
                 return DDLUtils.replace("varbinary($l)", length, null, null);
             case BLOB:
+            case LONGVARBINARY:
                 return "blob";
             default:
                 throw new IllegalArgumentException("unknown type: " + jdbcType);

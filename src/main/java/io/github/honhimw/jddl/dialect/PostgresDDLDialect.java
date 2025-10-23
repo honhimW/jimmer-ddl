@@ -42,6 +42,14 @@ public class PostgresDDLDialect extends DefaultDDLDialect {
                 return columnType(CHAR, length, precision, scale);
             case NVARCHAR:
                 return columnType(VARCHAR, length, precision, scale);
+
+            // since there's no real difference between TEXT and VARCHAR,
+            // except for the length limit, we can just use 'text' for the
+            // "long" string types
+            case LONGVARCHAR:
+            case LONGNVARCHAR:
+                return "text";
+
             case BLOB:
             case CLOB:
             case NCLOB:
@@ -57,7 +65,10 @@ public class PostgresDDLDialect extends DefaultDDLDialect {
             // real VARBINARY type in Postgres, so we always use this)
             case BINARY:
             case VARBINARY:
+            case LONGVARBINARY:
                 return "bytea";
+            case TIMESTAMP:
+                return columnType(TIME_WITH_TIMEZONE, length, precision, scale);
             default:
                 return super.columnType(jdbcType, length, precision, scale);
         }
