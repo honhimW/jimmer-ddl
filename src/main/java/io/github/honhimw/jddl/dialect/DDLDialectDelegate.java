@@ -22,7 +22,7 @@ import java.util.List;
 
 public class DDLDialectDelegate implements DDLDialect {
 
-    private final DDLDialect delegate;
+    protected final DDLDialect delegate;
 
     public DDLDialectDelegate(DDLDialect delegate) {
         this.delegate = delegate;

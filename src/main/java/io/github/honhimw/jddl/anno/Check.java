@@ -13,6 +13,11 @@ public @interface Check {
 
     String name() default "";
 
+    /**
+     * Support using pattern for path reference like:
+     * <pre>@Check("#sbd.benchPress > 100")</pre>
+     * Pattern: {@code Pattern.compile("#(?<column>[\\w.]+)")}
+     */
     String value();
 
 }

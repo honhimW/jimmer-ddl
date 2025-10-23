@@ -121,32 +121,28 @@ public class StandardTableExporter implements Exporter<ImmutableType> {
             for (Index index : indexes) {
                 StringBuilder buf = new StringBuilder();
                 buf.append(dialect.getCreateIndexString(index.unique())).append(' ');
+                String[] columns = index.columns();
+                Kind kind = index.kind();
+                columns = resolveColumnNames(bufferContext, columns, kind);
                 if (!index.name().isEmpty()) {
                     buf.append(index.name());
                 } else {
                     ConstraintNamingStrategy namingStrategy = bufferContext.getNamingStrategy(index.naming());
-                    buf.append(namingStrategy.determineIndexName(bufferContext.tableName, resolveColumnNames(bufferContext, index.columns(), index.kind())));
+                    buf.append(namingStrategy.determineIndexName(bufferContext.tableName, columns));
                 }
                 buf
                     .append(" on ")
                     .append(bufferContext.tableName)
                     .append(" (");
-                appendIndexColumnList(bufferContext, buf, index);
+                String separator = "";
+                for (String column : columns) {
+                    buf.append(separator).append(column);
+                    separator = ", ";
+                }
                 buf.append(')');
                 statements.add(buf.toString());
             }
 
-        }
-    }
-
-    private void appendIndexColumnList(BufferContext bufferContext, StringBuilder idxBuf, Index index) {
-        String[] columns = index.columns();
-        Kind kind = index.kind();
-        columns = resolveColumnNames(bufferContext, columns, kind);
-        String separator = "";
-        for (String column : columns) {
-            idxBuf.append(separator).append(column);
-            separator = ", ";
         }
     }
 
@@ -394,16 +390,16 @@ public class StandardTableExporter implements Exporter<ImmutableType> {
             bufferContext.buf.append(' ');
         }
         bufferContext.buf.append("constraint ");
+        String[] columns = unique.columns();
+        Kind kind = unique.kind();
+        columns = resolveColumnNames(bufferContext, columns, kind);
         if (!unique.name().isEmpty()) {
             bufferContext.buf.append(unique.name());
         } else {
             ConstraintNamingStrategy namingStrategy = bufferContext.getNamingStrategy(unique.naming());
-            bufferContext.buf.append(namingStrategy.determineUniqueKeyName(bufferContext.tableName, unique.columns()));
+            bufferContext.buf.append(namingStrategy.determineUniqueKeyName(bufferContext.tableName, columns));
         }
         bufferContext.buf.append(" unique (");
-        String[] columns = unique.columns();
-        Kind kind = unique.kind();
-        columns = resolveColumnNames(bufferContext, columns, kind);
         String separator = "";
         for (String column : columns) {
             bufferContext.buf.append(separator).append(column);
