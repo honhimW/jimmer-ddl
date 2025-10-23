@@ -87,7 +87,7 @@ public class DDLDesignTests extends AbstractRealDB {
 
     @Test
     void builder() {
-        ManualTypeBuilder builder = ManualTypeBuilder.string("id");
+        ManualTypeBuilder builder = ManualTypeBuilder.u64("id");
         ImmutableType build = builder
             .name("TEST_TABLE2")
             .addIndex(Kind.PATH, "name")

@@ -74,3 +74,41 @@ public interface Player {
     Integer age();
 }
 ```
+
+### Construct ImmutableType At Runtime
+
+```java
+ManualTypeBuilder builder = ManualTypeBuilder.u64("id");
+ImmutableType build = builder
+    .name("TEST_TABLE2")
+    .addIndex(Kind.PATH, "name")
+    .addUnique(Kind.PATH, "name")
+    .addCheck("#name <> ''")
+    .addColumn(column -> column
+        .name("name")
+        .returnClass(String.class)
+        .nullable(false)
+        .length(1024)
+        .defaultValue("'foo'")
+        .comment("comment on column")
+    )
+    .addColumn("uuidValue", UUID.class)
+    .comment("comment on table")
+    .build();
+// Generate Via DDLAutoRunner ...
+```
+#### Generated statements
+```sql
+create table TEST_TABLE2 (
+    ID bigint not null auto_increment,
+    NAME varchar(1024) default 'foo' not null,
+    UUID_VALUE uuid not null,
+    primary key (ID),
+    constraint UK_TEST_TABLE2_name unique (NAME),
+    check (NAME <> '')
+);
+comment on table TEST_TABLE2 is 'comment on table';
+comment on column TEST_TABLE2.NAME is 'comment on column';
+create index IDX_TEST_TABLE2_NAME on TEST_TABLE2 (NAME);
+drop table if exists TEST_TABLE2 cascade;
+```
