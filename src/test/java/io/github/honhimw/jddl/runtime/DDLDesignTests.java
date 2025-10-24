@@ -9,6 +9,7 @@ import io.github.honhimw.jddl.anno.*;
 import io.github.honhimw.jddl.manual.ManualImmutablePropImpl;
 import io.github.honhimw.jddl.manual.ManualImmutableTypeImpl;
 import io.github.honhimw.jddl.manual.ManualTypeBuilder;
+import java.util.ArrayList;
 import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.sql.dialect.Dialect;
 import org.babyfish.jimmer.sql.dialect.H2Dialect;
@@ -83,36 +84,47 @@ public class DDLDesignTests extends AbstractRealDB {
 
     @Test
     void builder() {
-        ManualTypeBuilder builder = ManualTypeBuilder.u64("id");
-        ImmutableType build = builder
-            .name("TEST_TABLE2")
-            .addIndex(Kind.PATH, "name")
-            .addUnique(Kind.PATH, "name")
-            .addCheck("#name <> ''")
-            .addColumn(column -> column
+        List<ImmutableType> types = new ArrayList<>();
+        {
+            ManualTypeBuilder builder = ManualTypeBuilder.of(column -> column
+              .name("id")
+              .type(UUID.class)
+            ).name("TEST_TABLE3");
+            ImmutableType build = builder.build();
+            types.add(build);
+        }
+        {
+            ManualTypeBuilder builder = ManualTypeBuilder.u64("id");
+
+            ImmutableType build = builder
+              .name("TEST_TABLE2")
+              .addIndex(Kind.PATH, "name")
+              .addUnique(Kind.PATH, "name")
+              .addCheck("#name <> ''")
+              .addColumn(column -> column
                 .name("name")
                 .type(String.class)
                 .nullable(false)
                 .length(1024)
                 .defaultValue("'foo'")
                 .comment("comment on column")
-            )
-            .addColumn("uuidValue", UUID.class)
-            .addRelation((fk, column) -> {
-                fk
+              )
+              .addColumn("uuidValue", UUID.class)
+              .addRelation((fk, column) -> {
+                  fk
                     .tableName("TEST_TABLE3")
                     .propName("table3")
                     .action(OnDeleteAction.CASCADE);
-                column
+                  column
                     .name("id")
                     .type(UUID.class);
-            })
-            .comment("comment on table")
-            .build();
-        List<ImmutableType> fakeImmutableTypes = Collections.singletonList(build);
-
+              })
+              .comment("comment on table")
+              .build();
+            types.add(build);
+        }
         JSqlClientImplementor sqlClient = getSqlClient();
-        DDLAutoRunner ddlAutoRunner = new DDLAutoRunner(sqlClient, DDLAuto.CREATE_DROP, fakeImmutableTypes);
+        DDLAutoRunner ddlAutoRunner = new DDLAutoRunner(sqlClient, DDLAuto.CREATE_DROP, types);
         ddlAutoRunner.init();
         ddlAutoRunner.create();
         ddlAutoRunner.drop();

@@ -1,14 +1,23 @@
 package io.github.honhimw.jddl.manual;
 
 import io.github.honhimw.jddl.DDLUtils;
-import io.github.honhimw.jddl.anno.*;
-import org.babyfish.jimmer.meta.ImmutableProp;
-import org.babyfish.jimmer.meta.ImmutableType;
-
+import io.github.honhimw.jddl.anno.Check;
+import io.github.honhimw.jddl.anno.ColumnDef;
+import io.github.honhimw.jddl.anno.Index;
+import io.github.honhimw.jddl.anno.Kind;
+import io.github.honhimw.jddl.anno.OnDeleteAction;
+import io.github.honhimw.jddl.anno.Unique;
 import java.lang.annotation.Annotation;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import org.babyfish.jimmer.meta.ImmutableProp;
+import org.babyfish.jimmer.meta.ImmutableType;
 
 /**
  * @author honhimW
@@ -237,7 +246,6 @@ public class ManualTypeBuilder {
         FK fk = new FK();
         // Construct dependent type & type#id
         ManualImmutableTypeImpl referencedType = new ManualImmutableTypeImpl();
-        referencedType.tableName = fk.tableName;
         Map<String, ImmutableProp> referencedTypeProps = new LinkedHashMap<>();
         referencedType.props = referencedTypeProps;
         referencedType.selectableProps = referencedTypeProps;
@@ -246,8 +254,10 @@ public class ManualTypeBuilder {
         ManualImmutablePropImpl referencedId = new ManualImmutablePropImpl();
         referencedId.isId = true;
         referencedId.declaringType = referencedType;
+        referencedType.idProp = referencedId;
         Column idColumn = new Column(referencedId);
         c.accept(fk, idColumn);
+        referencedType.tableName = fk.tableName;
         idColumn.addAnnotation(idColumn.columnDef);
         _assert(isNotBlank(referencedId.name), "`referencedId.name` should not be blank");
         _assert(referencedId.returnClass != null, "`referencedId.returnClass` should not be null");
@@ -262,7 +272,7 @@ public class ManualTypeBuilder {
         prop.name = fk.propName;
         prop.returnClass = Object.class;
         prop.targetType = referencedType;
-        prop.isEmbedded = true;
+        prop.isReference = true;
         Column referenceColumn = new Column(prop);
         DDLUtils.DefaultRelation foreignKey = new DDLUtils.DefaultRelation();
         foreignKey.action = fk.action;
