@@ -5,17 +5,13 @@ import io.github.honhimw.jddl.AbstractRealDB;
 import io.github.honhimw.jddl.DDLAuto;
 import io.github.honhimw.jddl.DDLAutoRunner;
 import io.github.honhimw.jddl.DDLUtils;
-import io.github.honhimw.jddl.anno.Check;
-import io.github.honhimw.jddl.anno.Index;
-import io.github.honhimw.jddl.anno.Kind;
-import io.github.honhimw.jddl.anno.Unique;
+import io.github.honhimw.jddl.anno.*;
 import io.github.honhimw.jddl.manual.ManualImmutablePropImpl;
 import io.github.honhimw.jddl.manual.ManualImmutableTypeImpl;
 import io.github.honhimw.jddl.manual.ManualTypeBuilder;
 import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.sql.dialect.Dialect;
 import org.babyfish.jimmer.sql.dialect.H2Dialect;
-import org.babyfish.jimmer.sql.meta.impl.Storages;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
@@ -95,13 +91,22 @@ public class DDLDesignTests extends AbstractRealDB {
             .addCheck("#name <> ''")
             .addColumn(column -> column
                 .name("name")
-                .returnClass(String.class)
+                .type(String.class)
                 .nullable(false)
                 .length(1024)
                 .defaultValue("'foo'")
                 .comment("comment on column")
             )
             .addColumn("uuidValue", UUID.class)
+            .addRelation((fk, column) -> {
+                fk
+                    .tableName("TEST_TABLE3")
+                    .propName("table3")
+                    .action(OnDeleteAction.CASCADE);
+                column
+                    .name("id")
+                    .type(UUID.class);
+            })
             .comment("comment on table")
             .build();
         List<ImmutableType> fakeImmutableTypes = Collections.singletonList(build);

@@ -100,12 +100,12 @@ ImmutableType build = builder
 #### Generated statements
 ```sql
 create table TEST_TABLE2 (
-    ID bigint not null auto_increment,
-    NAME varchar(1024) default 'foo' not null,
-    UUID_VALUE uuid not null,
-    primary key (ID),
-    constraint UK_TEST_TABLE2_name unique (NAME),
-    check (NAME <> '')
+     ID bigint not null auto_increment,
+     NAME varchar(1024) default 'foo' not null,
+     UUID_VALUE uuid not null,
+     primary key (ID),
+     constraint UK_TEST_TABLE2_NAME unique (NAME),
+     check (NAME <> '')
 );
 comment on table TEST_TABLE2 is 'comment on table';
 comment on column TEST_TABLE2.NAME is 'comment on column';
