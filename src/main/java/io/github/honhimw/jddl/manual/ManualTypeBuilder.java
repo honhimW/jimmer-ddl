@@ -267,6 +267,7 @@ public class ManualTypeBuilder {
         idColumn.addAnnotation(idColumn.columnDef);
         _assert(isNotBlank(referencedId.name), "`referencedId.name` should not be blank");
         _assert(referencedId.returnClass != null, "`referencedId.returnClass` should not be null");
+        _assert(isNotBlank(fk.name), "`referenceProp.name` should not be blank");
 
         referencedTypeProps.put(idColumn.prop.name, referencedId);
 
