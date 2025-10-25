@@ -242,6 +242,12 @@ public class ManualTypeBuilder {
         return this;
     }
 
+    /**
+     * Add relation on the column.
+     * 
+     * @param c foreign-key & referenced table id column configurer
+     * @return the current instance
+     */
     public ManualTypeBuilder addRelation(BiConsumer<FK, Column> c) {
         FK fk = new FK();
         // Construct dependent type & type#id
@@ -284,23 +290,6 @@ public class ManualTypeBuilder {
 
         return this;
     }
-
-    /**
-     * [!Note]
-     * Do not use this, it's not yet supported for now.
-     * Add relation on the column.
-     * @param definition foreign-key constraint definition
-     * @param action     on delete action
-     * @return the current instance
-     */
-//    public Column foreignKey(String definition, OnDeleteAction action) {
-//        DDLUtils.DefaultRelation foreignKey = new DDLUtils.DefaultRelation();
-//        foreignKey.definition = definition;
-//        foreignKey.action = action;
-//        columnDef.foreignKey = foreignKey;
-//        prop.isTargetForeignKeyReal = true;
-//        return this;
-//    }
 
     /**
      * Build the manually configured ImmutableType.
