@@ -1,13 +1,23 @@
 package io.github.honhimw.jddl.manual;
 
 import io.github.honhimw.jddl.DDLUtils;
-import io.github.honhimw.jddl.anno.*;
+import io.github.honhimw.jddl.anno.Check;
+import io.github.honhimw.jddl.anno.ColumnDef;
+import io.github.honhimw.jddl.anno.Index;
+import io.github.honhimw.jddl.anno.Kind;
+import io.github.honhimw.jddl.anno.OnDeleteAction;
+import io.github.honhimw.jddl.anno.Unique;
+import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 import org.babyfish.jimmer.meta.ImmutableProp;
 import org.babyfish.jimmer.meta.ImmutableType;
-
-import java.lang.annotation.Annotation;
-import java.util.*;
-import java.util.function.Consumer;
 
 /**
  * @author honhimW
@@ -20,18 +30,42 @@ public class ManualTypeBuilder {
 
     private final DDLUtils.DefaultTableDef tableDef = new DDLUtils.DefaultTableDef();
 
+    /**
+     * varchar(255) id builder
+     *
+     * @param id id column name
+     * @return new builder
+     */
     public static ManualTypeBuilder string(String id) {
-        return of(column -> column.name(id).returnClass(String.class));
+        return of(column -> column.name(id).type(String.class));
     }
 
+    /**
+     * int32 auto-increment id builder
+     *
+     * @param id id column name
+     * @return new builder
+     */
     public static ManualTypeBuilder u32(String id) {
-        return of(column -> column.name(id).returnClass(Integer.class).addAnnotation(new DDLUtils.DefaultGeneratedValue()));
+        return of(column -> column.name(id).type(Integer.class).addAnnotation(new DDLUtils.DefaultGeneratedValue()));
     }
 
+    /**
+     * int64 auto-increment id builder
+     *
+     * @param id id column name
+     * @return new builder
+     */
     public static ManualTypeBuilder u64(String id) {
-        return of(column -> column.name(id).returnClass(Long.class).addAnnotation(new DDLUtils.DefaultGeneratedValue()));
+        return of(column -> column.name(id).type(Long.class).addAnnotation(new DDLUtils.DefaultGeneratedValue()));
     }
 
+    /**
+     * The table must have an primary-key column
+     *
+     * @param id id column configurer
+     * @return new builder
+     */
     public static ManualTypeBuilder of(Consumer<Column> id) {
         ManualTypeBuilder builder = new ManualTypeBuilder();
         ManualImmutablePropImpl prop = new ManualImmutablePropImpl();
@@ -40,7 +74,7 @@ public class ManualTypeBuilder {
         Column column = new Column(prop);
         id.accept(column);
         column.addAnnotation(column.columnDef);
-        _assert(!isBlank(prop.name), "`prop.name` should not be blank");
+        _assert(isNotBlank(prop.name), "`prop.name` should not be blank");
         _assert(prop.returnClass != null, "`prop.returnClass` should not be null");
 
         builder.type.idProp = prop;
@@ -58,21 +92,45 @@ public class ManualTypeBuilder {
         type.annotations = new Annotation[]{tableDef};
     }
 
+    /**
+     * Set the table name.
+     *
+     * @param name table name
+     * @return the current instance
+     */
     public ManualTypeBuilder name(String name) {
         type.tableName = name;
         return this;
     }
 
+    /**
+     * Set the comment on table.
+     *
+     * @param comment comment
+     * @return the current instance
+     */
     public ManualTypeBuilder comment(String comment) {
         tableDef.comment = comment;
         return this;
     }
 
+    /**
+     * Set the table-type for MySQL e.g. InnoDB
+     *
+     * @param tableType MySQL table type
+     * @return the current instance
+     */
     public ManualTypeBuilder tableType(String tableType) {
         tableDef.tableType = tableType;
         return this;
     }
 
+    /**
+     * Add index on the table.
+     *
+     * @param index index definition
+     * @return the current instance
+     */
     public ManualTypeBuilder addIndex(Index index) {
         List<Index> list = asList(tableDef.indexes);
         list.add(index);
@@ -80,6 +138,13 @@ public class ManualTypeBuilder {
         return this;
     }
 
+    /**
+     * Add index on the table.
+     *
+     * @param kind    columns reference kind
+     * @param columns index columns
+     * @return the current instance
+     */
     public ManualTypeBuilder addIndex(Kind kind, String... columns) {
         List<Index> list = asList(tableDef.indexes);
         DDLUtils.DefaultIndex defaultIndex = new DDLUtils.DefaultIndex(columns);
@@ -89,6 +154,12 @@ public class ManualTypeBuilder {
         return this;
     }
 
+    /**
+     * Add unique constraint on the table.
+     *
+     * @param unique unique definition
+     * @return the current instance
+     */
     public ManualTypeBuilder addUnique(Unique unique) {
         List<Unique> list = asList(tableDef.uniques);
         list.add(unique);
@@ -96,6 +167,13 @@ public class ManualTypeBuilder {
         return this;
     }
 
+    /**
+     * Add unique constraint on the table.
+     *
+     * @param kind    columns reference kind
+     * @param columns unique columns
+     * @return the current instance
+     */
     public ManualTypeBuilder addUnique(Kind kind, String... columns) {
         List<Unique> list = asList(tableDef.uniques);
         DDLUtils.DefaultUnique defaultUnique = new DDLUtils.DefaultUnique();
@@ -106,6 +184,12 @@ public class ManualTypeBuilder {
         return this;
     }
 
+    /**
+     * Add check constraint on the table.
+     *
+     * @param check check definition
+     * @return the current instance
+     */
     public ManualTypeBuilder addCheck(Check check) {
         List<Check> list = asList(tableDef.checks);
         list.add(check);
@@ -113,6 +197,12 @@ public class ManualTypeBuilder {
         return this;
     }
 
+    /**
+     * Add check constraint on the table.
+     *
+     * @param check check constraint content
+     * @return the current instance
+     */
     public ManualTypeBuilder addCheck(String check) {
         List<Check> list = asList(tableDef.checks);
         list.add(new DDLUtils.DefaultCheck(check));
@@ -120,10 +210,23 @@ public class ManualTypeBuilder {
         return this;
     }
 
-    public ManualTypeBuilder addColumn(String name, Class<?> returnClass) {
-        return addColumn(column -> column.name(name).returnClass(returnClass));
+    /**
+     * Add a column on the table.
+     *
+     * @param name property name
+     * @param type java type
+     * @return the current instance
+     */
+    public ManualTypeBuilder addColumn(String name, Class<?> type) {
+        return addColumn(column -> column.name(name).type(type));
     }
 
+    /**
+     * Add a column on the table.
+     *
+     * @param c column configurer
+     * @return the current instance
+     */
     public ManualTypeBuilder addColumn(Consumer<Column> c) {
         ManualImmutablePropImpl prop = new ManualImmutablePropImpl();
         prop.isId = false;
@@ -131,7 +234,7 @@ public class ManualTypeBuilder {
         Column column = new Column(prop);
         c.accept(column);
         column.addAnnotation(column.columnDef);
-        _assert(!isBlank(prop.name), "`prop.name` should not be blank");
+        _assert(isNotBlank(prop.name), "`prop.name` should not be blank");
         _assert(prop.returnClass != null, "`prop.returnClass` should not be null");
 
         type.props.put(prop.name, prop);
@@ -139,11 +242,69 @@ public class ManualTypeBuilder {
         return this;
     }
 
+    /**
+     * Add relation on the column.
+     * 
+     * @param c foreign-key & referenced table id column configurer
+     * @return the current instance
+     */
+    public ManualTypeBuilder addRelation(BiConsumer<FK, Column> c) {
+        FK fk = new FK();
+        // Construct dependent type & type#id
+        ManualImmutableTypeImpl referencedType = new ManualImmutableTypeImpl();
+        Map<String, ImmutableProp> referencedTypeProps = new LinkedHashMap<>();
+        referencedType.props = referencedTypeProps;
+        referencedType.selectableProps = referencedTypeProps;
+        referencedType.superTypes = Collections.emptySet();
+
+        ManualImmutablePropImpl referencedId = new ManualImmutablePropImpl();
+        referencedId.isId = true;
+        referencedId.declaringType = referencedType;
+        referencedType.idProp = referencedId;
+        Column idColumn = new Column(referencedId);
+        c.accept(fk, idColumn);
+        referencedType.tableName = fk.tableName;
+        idColumn.addAnnotation(idColumn.columnDef);
+        _assert(isNotBlank(referencedId.name), "`referencedId.name` should not be blank");
+        _assert(referencedId.returnClass != null, "`referencedId.returnClass` should not be null");
+        _assert(isNotBlank(fk.propName), "`referenceProp.name` should not be blank");
+
+        referencedTypeProps.put(idColumn.prop.name, referencedId);
+
+        // Construct reference prop
+
+        ManualImmutablePropImpl prop = new ManualImmutablePropImpl();
+        prop.isId = false;
+        prop.isTargetForeignKeyReal = true;
+        prop.name = fk.propName;
+        prop.returnClass = Object.class;
+        prop.targetType = referencedType;
+        prop.isReference = true;
+        Column referenceColumn = new Column(prop);
+        DDLUtils.DefaultRelation foreignKey = new DDLUtils.DefaultRelation();
+        foreignKey.action = fk.action;
+        referenceColumn.columnDef.foreignKey = foreignKey;
+        referenceColumn.addAnnotation(referenceColumn.columnDef);
+
+        type.props.put(prop.name, prop);
+        prop.declaringType = type;
+
+        return this;
+    }
+
+    /**
+     * Build the manually configured ImmutableType.
+     *
+     * @return immutable-type
+     */
     public ImmutableType build() {
-        _assert(!isBlank(type.tableName), "`type.tableName` should not be blank");
+        _assert(isNotBlank(type.tableName), "`type.tableName` should not be blank");
         return type;
     }
 
+    /**
+     * Property configuration
+     */
     public static class Column {
         private final ManualImmutablePropImpl prop;
         private final DDLUtils.DefaultColumnDef columnDef = new DDLUtils.DefaultColumnDef();
@@ -154,73 +315,164 @@ public class ManualTypeBuilder {
             prop.hasStorage = true;
         }
 
+        /**
+         * Set the property name. This is the logical property name, not the column name,
+         * even though they may look similar(the column name derive from property name).
+         *
+         * @param name property name
+         * @return the current instance
+         */
         public Column name(String name) {
             prop.name = name;
             return this;
         }
 
-        public Column returnClass(Class<?> returnClass) {
-            prop.returnClass = returnClass;
+        /**
+         * Set the property type, will be auto-mapped to jdbc-type for DDL generation.
+         *
+         * @param type java type
+         * @return the current instance
+         */
+        public Column type(Class<?> type) {
+            prop.returnClass = type;
             return this;
         }
 
+        /**
+         * SQL type definition.
+         *
+         * @param sqlType type definition. If not blank: overwritten the auto-mapping logic.
+         * @return the current instance
+         */
         public Column sqlType(String sqlType) {
             columnDef.sqlType = sqlType;
             return this;
         }
 
+        /**
+         * Set the jdbc-type.
+         *
+         * @param jdbcType the jdbc type code, see: {@link java.sql.Types}
+         * @return the current instance
+         */
         public Column jdbcType(int jdbcType) {
             columnDef.jdbcType = jdbcType;
             return this;
         }
 
+        /**
+         * Set the type length.
+         *
+         * @param length length
+         * @return the current instance
+         */
         public Column length(int length) {
             columnDef.length = length;
             return this;
         }
 
+        /**
+         * Set the type precision.
+         *
+         * @param precision precision
+         * @return the current instance
+         */
         public Column precision(int precision) {
             columnDef.precision = precision;
             return this;
         }
 
+        /**
+         * Set the type scale.
+         *
+         * @param scale scale
+         * @return the current instance
+         */
         public Column scale(int scale) {
             columnDef.scale = scale;
             return this;
         }
 
+        /**
+         * Set if the column is nullable.
+         *
+         * @param nullable nullability
+         * @return the current instance
+         */
         public Column nullable(boolean nullable) {
             columnDef.nullable = nullable ? ColumnDef.Nullable.TRUE : ColumnDef.Nullable.FALSE;
             return this;
         }
 
+        /**
+         * Set the column default value
+         *
+         * @param defaultValue in raw format, e.g. CURRENT_TIMESTAMP, 'foo', 0, false.
+         * @return the current instance
+         */
         public Column defaultValue(String defaultValue) {
             columnDef.defaultValue = defaultValue;
             return this;
         }
 
+        /**
+         * Set the column comment.
+         *
+         * @param comment comment on column
+         * @return the current instance
+         */
         public Column comment(String comment) {
             columnDef.comment = comment;
             return this;
         }
 
+        /**
+         * Column definition in plain.
+         *
+         * @param definition plain definition without column name, e.g. datetime default CURRENT_TIMESTAMP not null
+         * @return the current instance
+         */
         public Column definition(String definition) {
             columnDef.definition = definition;
             return this;
         }
 
-        public Column foreignKey(String definition, OnDeleteAction action) {
-            DDLUtils.DefaultRelation foreignKey = new DDLUtils.DefaultRelation();
-            foreignKey.definition = definition;
-            foreignKey.action = action;
-            columnDef.foreignKey = foreignKey;
-            return this;
-        }
-
+        /**
+         * Add annotation on the property.
+         *
+         * @param annotation annotation
+         * @return the current instance
+         */
         public Column addAnnotation(Annotation annotation) {
             List<Annotation> list = asList(prop.annotations);
             list.add(annotation);
             prop.annotations = list.toArray(new Annotation[0]);
+            return this;
+        }
+
+    }
+
+    public static class FK {
+        private String tableName;
+        private String propName;
+        private OnDeleteAction action;
+
+        private FK() {
+
+        }
+
+        public FK tableName(String tableName) {
+            this.tableName = tableName;
+            return this;
+        }
+
+        public FK propName(String propName) {
+            this.propName = propName;
+            return this;
+        }
+
+        public FK action(OnDeleteAction action) {
+            this.action = action;
             return this;
         }
 
@@ -235,8 +487,8 @@ public class ManualTypeBuilder {
         return list;
     }
 
-    private static boolean isBlank(String string) {
-        return string == null || string.trim().isEmpty();
+    private static boolean isNotBlank(String string) {
+        return string != null && !string.trim().isEmpty();
     }
 
     private static void _assert(boolean condition, String message) {
