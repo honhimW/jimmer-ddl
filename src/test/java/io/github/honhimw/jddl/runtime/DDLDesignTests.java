@@ -114,14 +114,8 @@ public class DDLDesignTests extends AbstractRealDB {
                 .tableName("TEST_TABLE4")
                 .propName("table4")
                 .action(OnDeleteAction.SET_DEFAULT)
-                .self(column -> column
-                    .comment("reference to table4")
-                    .defaultValue("-1")
-                )
-                .id(column -> column
-                    .name("id")
-                    .type(Integer.class)
-                )
+                .self(column -> column.comment("reference to table4").defaultValue("-1"))
+                .id(column -> column.name("id").type(Integer.class))
             )
             .comment("comment on table")
             .build();
