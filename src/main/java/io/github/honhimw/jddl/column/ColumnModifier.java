@@ -24,7 +24,7 @@ public class ColumnModifier {
             return new H2ColumnModifier(dialect, table, column);
         } else if (dialect instanceof PostgresDDLDialect) {
             return new PostgresColumnModifier(dialect, table, column);
-        } else if (dialect instanceof MySqlDDLDialect) {
+        } else if (dialect instanceof MySqlDDLDialect || dialect instanceof MariaDBDDLDialect) {
             return new MySqlColumnModifier(dialect, table, column);
         } else if (dialect instanceof SqlServerDDLDialect) {
             return new SqlServerColumnModifier(dialect, table, column);

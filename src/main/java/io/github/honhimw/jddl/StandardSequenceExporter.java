@@ -32,11 +32,13 @@ public class StandardSequenceExporter implements Exporter<ImmutableProp> {
 
     @Override
     public List<String> getSqlCreateStrings(ImmutableProp exportable) {
-        GeneratedValue annotation = exportable.getAnnotation(GeneratedValue.class);
-        if (annotation != null) {
-            if (!annotation.sequenceName().isEmpty()) {
-                String createSequenceString = dialect.getCreateSequenceString(annotation.sequenceName(), 1, 1);
-                return Collections.singletonList(createSequenceString);
+        if (dialect.supportsSequence()) {
+            GeneratedValue annotation = exportable.getAnnotation(GeneratedValue.class);
+            if (annotation != null) {
+                if (!annotation.sequenceName().isEmpty()) {
+                    String createSequenceString = dialect.getCreateSequenceString(annotation.sequenceName(), 1, 1);
+                    return Collections.singletonList(createSequenceString);
+                }
             }
         }
         return Collections.emptyList();
@@ -44,11 +46,13 @@ public class StandardSequenceExporter implements Exporter<ImmutableProp> {
 
     @Override
     public List<String> getSqlDropStrings(ImmutableProp exportable) {
-        GeneratedValue annotation = exportable.getAnnotation(GeneratedValue.class);
-        if (annotation != null) {
-            if (!annotation.sequenceName().isEmpty()) {
-                String createSequenceString = dialect.getDropSequenceString(annotation.sequenceName());
-                return Collections.singletonList(createSequenceString);
+        if (dialect.supportsSequence()) {
+            GeneratedValue annotation = exportable.getAnnotation(GeneratedValue.class);
+            if (annotation != null) {
+                if (!annotation.sequenceName().isEmpty()) {
+                    String createSequenceString = dialect.getDropSequenceString(annotation.sequenceName());
+                    return Collections.singletonList(createSequenceString);
+                }
             }
         }
         return Collections.emptyList();

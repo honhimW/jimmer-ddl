@@ -46,6 +46,7 @@ dependencies {
     testRuntimeOnly libs.postgresql
     testRuntimeOnly libs.mysql
     testRuntimeOnly libs.mssql
+    testRuntimeOnly libs.mariadb
     testRuntimeOnly libs.oracle
     testRuntimeOnly libs.sqlite
     testRuntimeOnly libs.logback.classic
@@ -62,8 +63,10 @@ dependencies {
     testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
     testImplementation 'org.testcontainers:testcontainers-postgresql'
     testImplementation 'org.testcontainers:testcontainers-mysql'
+    testImplementation 'org.testcontainers:testcontainers-mariadb'
     testImplementation 'org.testcontainers:testcontainers-mssqlserver'
     testImplementation 'org.testcontainers:testcontainers-oracle-free'
+    testImplementation 'org.testcontainers:testcontainers-tidb'
 
 }
 

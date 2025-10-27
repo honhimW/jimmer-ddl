@@ -120,4 +120,8 @@ public class MySqlDDLDialect extends DefaultDDLDialect {
         return false;
     }
 
+    @Override
+    public boolean supportsSequence() {
+        return false;
+    }
 }

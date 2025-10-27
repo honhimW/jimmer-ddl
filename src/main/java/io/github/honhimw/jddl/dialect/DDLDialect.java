@@ -16,7 +16,9 @@ import java.util.UUID;
 public interface DDLDialect extends Dialect {
 
     static DDLDialect of(Dialect dialect, @Nullable DatabaseVersion version) {
-        if (dialect instanceof H2Dialect) {
+        if (dialect instanceof DDLDialect) {
+            return (DDLDialect) dialect;
+        } else if (dialect instanceof H2Dialect) {
             return new H2DDLDialect(version);
         } else if (dialect instanceof MySqlDialect) {
             return new MySqlDDLDialect(version);
@@ -200,6 +202,10 @@ public interface DDLDialect extends Dialect {
 
     default String getCreateIndexString(boolean unique) {
         return unique ? "create unique index" : "create index";
+    }
+
+    default boolean supportsSequence() {
+        return true;
     }
 
     default String getCreateSequenceString(String sequenceName) {

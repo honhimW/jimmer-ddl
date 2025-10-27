@@ -25,6 +25,9 @@ public interface Book {
     @GeneratedValue(generatorType = UUIDIdGenerator.class)
     UUID id();
 
+    @GeneratedValue(sequenceName = "another_id_generator")
+    String anotherId();
+
     /**
      * Name $:)$
      */

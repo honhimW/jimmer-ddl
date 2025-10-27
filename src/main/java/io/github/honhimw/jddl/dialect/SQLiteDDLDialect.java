@@ -81,4 +81,9 @@ public class SQLiteDDLDialect extends DefaultDDLDialect {
     public boolean supportsCreateTableWithForeignKey() {
         return true;
     }
+
+    @Override
+    public boolean supportsSequence() {
+        return false;
+    }
 }
