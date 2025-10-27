@@ -1,23 +1,13 @@
 package io.github.honhimw.jddl.manual;
 
 import io.github.honhimw.jddl.DDLUtils;
-import io.github.honhimw.jddl.anno.Check;
-import io.github.honhimw.jddl.anno.ColumnDef;
-import io.github.honhimw.jddl.anno.Index;
-import io.github.honhimw.jddl.anno.Kind;
-import io.github.honhimw.jddl.anno.OnDeleteAction;
-import io.github.honhimw.jddl.anno.Unique;
-import java.lang.annotation.Annotation;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
+import io.github.honhimw.jddl.anno.*;
 import org.babyfish.jimmer.meta.ImmutableProp;
 import org.babyfish.jimmer.meta.ImmutableType;
+
+import java.lang.annotation.Annotation;
+import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * @author honhimW
@@ -95,11 +85,11 @@ public class ManualTypeBuilder {
     /**
      * Set the table name.
      *
-     * @param name table name
+     * @param tableName table name
      * @return the current instance
      */
-    public ManualTypeBuilder name(String name) {
-        type.tableName = name;
+    public ManualTypeBuilder tableName(String tableName) {
+        type.tableName = tableName;
         return this;
     }
 
@@ -244,43 +234,60 @@ public class ManualTypeBuilder {
 
     /**
      * Add relation on the column.
-     * 
+     *
      * @param c foreign-key & referenced table id column configurer
      * @return the current instance
      */
-    public ManualTypeBuilder addRelation(BiConsumer<FK, Column> c) {
+    public ManualTypeBuilder addRelation(Consumer<FK> c) {
         FK fk = new FK();
         // Construct dependent type & type#id
-        ManualImmutableTypeImpl referencedType = new ManualImmutableTypeImpl();
-        Map<String, ImmutableProp> referencedTypeProps = new LinkedHashMap<>();
-        referencedType.props = referencedTypeProps;
-        referencedType.selectableProps = referencedTypeProps;
-        referencedType.superTypes = Collections.emptySet();
 
-        ManualImmutablePropImpl referencedId = new ManualImmutablePropImpl();
-        referencedId.isId = true;
-        referencedId.declaringType = referencedType;
-        referencedType.idProp = referencedId;
-        Column idColumn = new Column(referencedId);
-        c.accept(fk, idColumn);
-        referencedType.tableName = fk.tableName;
-        idColumn.addAnnotation(idColumn.columnDef);
-        _assert(isNotBlank(referencedId.name), "`referencedId.name` should not be blank");
-        _assert(referencedId.returnClass != null, "`referencedId.returnClass` should not be null");
+        c.accept(fk);
         _assert(isNotBlank(fk.propName), "`referenceProp.name` should not be blank");
-
-        referencedTypeProps.put(idColumn.prop.name, referencedId);
-
-        // Construct reference prop
-
+        _assert(fk.referenceType != null || fk.idConsumer != null, "either `fk.referenceType` or `fk.consumer` should be set");
         ManualImmutablePropImpl prop = new ManualImmutablePropImpl();
-        prop.isId = false;
-        prop.isTargetForeignKeyReal = true;
-        prop.name = fk.propName;
-        prop.returnClass = Object.class;
-        prop.targetType = referencedType;
-        prop.isReference = true;
+        if (fk.referenceType != null) {
+            prop.isId = false;
+            prop.isTargetForeignKeyReal = true;
+            prop.name = fk.propName;
+            prop.returnClass = Object.class;
+            prop.isReference = true;
+            prop.targetType = fk.referenceType;
+        } else {
+            // Construct dependent type & type#id
+            ManualImmutableTypeImpl referencedType = new ManualImmutableTypeImpl();
+            Map<String, ImmutableProp> referencedTypeProps = new LinkedHashMap<>();
+            referencedType.props = referencedTypeProps;
+            referencedType.selectableProps = referencedTypeProps;
+            referencedType.superTypes = Collections.emptySet();
+
+            ManualImmutablePropImpl referencedId = new ManualImmutablePropImpl();
+            referencedId.isId = true;
+            referencedId.declaringType = referencedType;
+            referencedType.idProp = referencedId;
+            Column idColumn = new Column(referencedId);
+            fk.idConsumer.accept(idColumn);
+            referencedType.tableName = fk.tableName;
+            idColumn.addAnnotation(idColumn.columnDef);
+            _assert(isNotBlank(referencedId.name), "`referencedId.name` should not be blank");
+            _assert(referencedId.returnClass != null, "`referencedId.returnClass` should not be null");
+            _assert(isNotBlank(fk.propName), "`referenceProp.name` should not be blank");
+
+            referencedTypeProps.put(idColumn.prop.name, referencedId);
+
+            // Construct reference prop
+            prop.isId = false;
+            prop.isTargetForeignKeyReal = true;
+            prop.name = fk.propName;
+            prop.returnClass = Object.class;
+            prop.isReference = true;
+            prop.targetType = referencedType;
+        }
         Column referenceColumn = new Column(prop);
+        if (fk.selfConsumer != null) {
+            fk.selfConsumer.accept(referenceColumn);
+        }
+
         DDLUtils.DefaultRelation foreignKey = new DDLUtils.DefaultRelation();
         foreignKey.action = fk.action;
         referenceColumn.columnDef.foreignKey = foreignKey;
@@ -455,24 +462,81 @@ public class ManualTypeBuilder {
     public static class FK {
         private String tableName;
         private String propName;
-        private OnDeleteAction action;
+        private OnDeleteAction action = OnDeleteAction.NONE;
+        private ImmutableType referenceType;
+        private Consumer<Column> idConsumer;
+        private Consumer<Column> selfConsumer;
 
         private FK() {
 
         }
 
+        /**
+         * Set referenced table name
+         *
+         * @param tableName referenced table name
+         * @return the current instance
+         */
         public FK tableName(String tableName) {
             this.tableName = tableName;
             return this;
         }
 
+        /**
+         * Set reference property name
+         *
+         * @param propName property name
+         * @return the current instance
+         */
         public FK propName(String propName) {
             this.propName = propName;
             return this;
         }
 
+        /**
+         * Foreign key on delete action
+         *
+         * @param action on delete action
+         * @return the current instance
+         */
         public FK action(OnDeleteAction action) {
             this.action = action;
+            return this;
+        }
+
+        /**
+         * Set referenced type, useful when the type is a pre-constructed.
+         *
+         * @see #id(Consumer) either using this or using id(Consumer)
+         * @param type referenced table type
+         * @return the current instance
+         */
+        public FK type(ImmutableType type) {
+            this.referenceType = type;
+            return this;
+        }
+
+        /**
+         * Configure the referenced table id column.
+         * Auto build a single column type for generation.
+         *
+         * @see #type(ImmutableType) either using this or using type(ImmutableType)
+         * @param c id column configurer
+         * @return the current instance
+         */
+        public FK id(Consumer<Column> c) {
+            this.idConsumer = c;
+            return this;
+        }
+
+        /**
+         * Configure the column reference to the referenced type.
+         *
+         * @param c foreign-key column configurer
+         * @return the current instance
+         */
+        public FK self(Consumer<Column> c) {
+            this.selfConsumer = c;
             return this;
         }
 

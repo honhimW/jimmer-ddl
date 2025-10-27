@@ -9,7 +9,6 @@ import io.github.honhimw.jddl.anno.*;
 import io.github.honhimw.jddl.manual.ManualImmutablePropImpl;
 import io.github.honhimw.jddl.manual.ManualImmutableTypeImpl;
 import io.github.honhimw.jddl.manual.ManualTypeBuilder;
-import java.util.ArrayList;
 import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.sql.dialect.Dialect;
 import org.babyfish.jimmer.sql.dialect.H2Dialect;
@@ -19,10 +18,7 @@ import org.junit.jupiter.api.Test;
 
 import javax.sql.DataSource;
 import java.lang.annotation.Annotation;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * @author honhimW
@@ -85,44 +81,51 @@ public class DDLDesignTests extends AbstractRealDB {
     @Test
     void builder() {
         List<ImmutableType> types = new ArrayList<>();
-        {
-            ManualTypeBuilder builder = ManualTypeBuilder.of(column -> column
-              .name("id")
-              .type(UUID.class)
-            ).name("TEST_TABLE3");
-            ImmutableType build = builder.build();
-            types.add(build);
-        }
-        {
-            ManualTypeBuilder builder = ManualTypeBuilder.u64("id");
-
-            ImmutableType build = builder
-              .name("TEST_TABLE2")
-              .addIndex(Kind.PATH, "name")
-              .addUnique(Kind.PATH, "name")
-              .addCheck("#name <> ''")
-              .addColumn(column -> column
+        ManualTypeBuilder table3Builder = ManualTypeBuilder.of(column -> column
+            .name("id")
+            .type(UUID.class)
+        ).tableName("TEST_TABLE3");
+        ImmutableType table3 = table3Builder.build();
+        types.add(table3);
+        ManualTypeBuilder table4Builder = ManualTypeBuilder.u32("id").tableName("TEST_TABLE4");
+        ImmutableType table4 = table4Builder.build();
+        types.add(table4);
+        ManualTypeBuilder referenceTableBuilder = ManualTypeBuilder.u64("id");
+        ImmutableType table2 = referenceTableBuilder
+            .tableName("TEST_TABLE2")
+            .addIndex(Kind.PATH, "name")
+            .addUnique(Kind.PATH, "name")
+            .addCheck("#name <> ''")
+            .addColumn(column -> column
                 .name("name")
                 .type(String.class)
                 .nullable(false)
                 .length(1024)
                 .defaultValue("'foo'")
                 .comment("comment on column")
-              )
-              .addColumn("uuidValue", UUID.class)
-              .addRelation((fk, column) -> {
-                  fk
-                    .tableName("TEST_TABLE3")
-                    .propName("table3")
-                    .action(OnDeleteAction.CASCADE);
-                  column
+            )
+            .addColumn("uuidValue", UUID.class)
+            .addRelation(fk -> fk
+                .propName("table3")
+                .action(OnDeleteAction.CASCADE)
+                .type(table3)
+            )
+            .addRelation(fk -> fk
+                .tableName("TEST_TABLE4")
+                .propName("table4")
+                .action(OnDeleteAction.SET_DEFAULT)
+                .self(column -> column
+                    .comment("reference to table4")
+                    .defaultValue("-1")
+                )
+                .id(column -> column
                     .name("id")
-                    .type(UUID.class);
-              })
-              .comment("comment on table")
-              .build();
-            types.add(build);
-        }
+                    .type(Integer.class)
+                )
+            )
+            .comment("comment on table")
+            .build();
+        types.add(table2);
         JSqlClientImplementor sqlClient = getSqlClient();
         DDLAutoRunner ddlAutoRunner = new DDLAutoRunner(sqlClient, DDLAuto.CREATE_DROP, types);
         ddlAutoRunner.init();

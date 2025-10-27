@@ -101,16 +101,16 @@ public class DDLUtils {
         final List<ForeignKey> foreignKeys = new ArrayList<>();
         Map<String, ImmutableProp> allDefinitionProps = DDLUtils.allDefinitionProps(immutableType);
         for (Map.Entry<String, ImmutableProp> entry : allDefinitionProps.entrySet()) {
-            ImmutableProp definitionProps = entry.getValue();
-            if (definitionProps.isTargetForeignKeyReal(metadataStrategy)) {
-                ColumnDef columnDef = definitionProps.getAnnotation(ColumnDef.class);
+            ImmutableProp definitionProp = entry.getValue();
+            if (definitionProp.isTargetForeignKeyReal(metadataStrategy)) {
+                ColumnDef columnDef = definitionProp.getAnnotation(ColumnDef.class);
                 Relation relation;
                 if (columnDef != null) {
                     relation = columnDef.foreignKey();
                 } else {
                     relation = new DefaultRelation();
                 }
-                ForeignKey _foreignKey = new ForeignKey(relation, definitionProps, immutableType, definitionProps.getTargetType());
+                ForeignKey _foreignKey = new ForeignKey(relation, definitionProp, immutableType, definitionProp.getTargetType());
                 foreignKeys.add(_foreignKey);
             }
         }
