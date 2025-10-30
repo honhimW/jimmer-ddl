@@ -1,0 +1,40 @@
+version = '0.1.0'
+description = 'ddl generator for jimmer'
+
+dependencies {
+    implementation project(':jimmer-manual')
+    compileOnly platform(libs.jimmer.bom)
+
+    compileOnly 'org.babyfish.jimmer:jimmer-sql'
+    compileOnly libs.jspecify
+    compileOnly libs.slf4j.api
+
+    testImplementation project(':test')
+    testImplementation libs.h2
+    testImplementation platform(libs.jimmer.bom)
+    testAnnotationProcessor platform(libs.jimmer.bom)
+    testImplementation 'org.babyfish.jimmer:jimmer-sql'
+    testImplementation libs.slf4j.api
+    testImplementation libs.jspecify
+    testImplementation libs.hikari
+    testRuntimeOnly libs.postgresql
+    testRuntimeOnly libs.mysql
+    testRuntimeOnly libs.mssql
+    testRuntimeOnly libs.mariadb
+    testRuntimeOnly libs.oracle
+    testRuntimeOnly libs.sqlite
+    testRuntimeOnly libs.logback.classic
+
+    testAnnotationProcessor 'org.babyfish.jimmer:jimmer-apt'
+
+    testImplementation platform('org.testcontainers:testcontainers-bom:2.0.1')
+    testImplementation 'org.testcontainers:testcontainers'
+    testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
+    testImplementation 'org.testcontainers:testcontainers-postgresql'
+    testImplementation 'org.testcontainers:testcontainers-mysql'
+    testImplementation 'org.testcontainers:testcontainers-mariadb'
+    testImplementation 'org.testcontainers:testcontainers-mssqlserver'
+    testImplementation 'org.testcontainers:testcontainers-oracle-free'
+    testImplementation 'org.testcontainers:testcontainers-tidb'
+
+}

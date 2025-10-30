@@ -1,1 +1,5 @@
-rootProject.name = 'jimmer-ddl'
+rootProject.name = 'jimmer-playground'
+include 'jimmer-manual'
+include 'jimmer-ddl'
+include 'jimmer-dml'
+include 'test'

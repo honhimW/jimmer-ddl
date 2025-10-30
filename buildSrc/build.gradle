@@ -1,0 +1,18 @@
+plugins {
+    id 'groovy'
+    id 'com.gradle.plugin-publish' version '2.0.0'
+}
+
+dependencies {
+    implementation "com.vanniktech:gradle-maven-publish-plugin:${libs.versions.central.publish.get()}"
+}
+
+gradlePlugin {
+    plugins {
+        create('libraryPlugin') {
+            id 'io.github.honhimw.library'
+            implementationClass 'io.github.honhimw.LibraryPlugin'
+        }
+    }
+}
+

@@ -1,0 +1,9 @@
+version = '0.0.1'
+
+dependencies {
+    compileOnly platform(libs.jimmer.bom)
+
+    compileOnly 'org.babyfish.jimmer:jimmer-sql'
+    compileOnly libs.jspecify
+    compileOnly libs.slf4j.api
+}

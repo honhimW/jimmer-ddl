@@ -1,0 +1,27 @@
+version = '0.0.1'
+
+dependencies {
+    compileOnly platform(libs.jimmer.bom)
+
+    compileOnly 'org.babyfish.jimmer:jimmer-sql'
+
+    implementation libs.hikari
+
+    implementation libs.postgresql
+    implementation libs.mysql
+    implementation libs.mssql
+    implementation libs.mariadb
+    implementation libs.oracle
+    implementation libs.sqlite
+    implementation libs.logback.classic
+
+    implementation platform('org.testcontainers:testcontainers-bom:2.0.1')
+    implementation 'org.testcontainers:testcontainers'
+    implementation 'org.testcontainers:testcontainers-junit-jupiter'
+    implementation 'org.testcontainers:testcontainers-postgresql'
+    implementation 'org.testcontainers:testcontainers-mysql'
+    implementation 'org.testcontainers:testcontainers-mariadb'
+    implementation 'org.testcontainers:testcontainers-mssqlserver'
+    implementation 'org.testcontainers:testcontainers-oracle-free'
+    implementation 'org.testcontainers:testcontainers-tidb'
+}
