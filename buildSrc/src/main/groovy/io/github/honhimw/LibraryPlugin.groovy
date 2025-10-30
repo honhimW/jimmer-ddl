@@ -46,7 +46,7 @@ class LibraryPlugin implements Plugin<Project> {
             compile.options.encoding = UTF_8.name()
             compile.options.compilerArgs << "-Xlint:deprecation"
         }
-        project.tasks.withType(Jar).configureEach {jar ->
+        project.tasks.withType(Jar).configureEach { jar ->
             jar.enabled = true
         }
     }
@@ -80,26 +80,26 @@ class LibraryPlugin implements Plugin<Project> {
 
                 it.coordinates project.group as String, project.name, project.version as String
 
-                it.pom {pom ->
+                it.pom { pom ->
                     pom.name.set project.name
                     pom.description.set project.description
                     pom.url.set 'https://github.com/honhimW/jimmer-ddl'
-                    pom.licenses {licenses ->
-                        licenses.license {license ->
+                    pom.licenses { licenses ->
+                        licenses.license { license ->
                             license.name.set 'The Apache License, Version 2.0'
                             license.url.set 'https://www.apache.org/licenses/LICENSE-2.0.txt'
                             license.distribution.set 'https://www.apache.org/licenses/LICENSE-2.0.txt'
                         }
                     }
                     pom.developers { developers ->
-                        developers.developer {developer ->
+                        developers.developer { developer ->
                             developer.id.set 'honhimw'
                             developer.name.set 'honhimw'
                             developer.url.set 'https://honhimW.github.io'
                             developer.email.set 'honhimw@outlook.com'
                         }
                     }
-                    pom.scm {scm ->
+                    pom.scm { scm ->
                         scm.url.set 'https://github.com/honhimW/jimmer-ddl'
                         scm.connection.set 'scm:git:git://github.com/honhimW/jimmer-ddl.git'
                         scm.developerConnection.set 'scm:git:ssh://github.com/honhimW/jimmer-ddl.git'
