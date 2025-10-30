@@ -52,7 +52,7 @@ public class DMLTests extends AbstractH2 {
 
             // INSERT
             ManualImmutableSpi entity = new ManualImmutableSpi(testType);
-//            entity.set("id", 1);
+            entity.set("id", 1);
             entity.set("name", "bar");
             SimpleSaveResult<ManualImmutableSpi> insertResult = sqlClient.saveCommand(entity)
                 .setMode(SaveMode.INSERT_ONLY)
@@ -67,9 +67,10 @@ public class DMLTests extends AbstractH2 {
 
             Assertions.assertEquals(1, updateResult);
 
+            // SELECT
             MutableRootQuery<TableProxy<Object>> query = sqlClient.createQuery(tableProxy);
             MutableRootQuery<TableProxy<Object>> id = query.where(tableProxy.get("id").eq(1));
-            Object o = id.select(tableProxy).fetchOptional().orElse(null);
+            Object o = id.select(tableProxy).fetchFirstOrNull();
             Assertions.assertEquals(1, ImmutableObjects.get(o, "id"));
             Assertions.assertEquals("foo", ImmutableObjects.get(o, "name"));
 
