@@ -1,116 +1,16 @@
-import static java.nio.charset.StandardCharsets.UTF_8
-
-plugins {
-    id 'java-library'
-    id 'signing'
-    alias libs.plugins.publish
+def libraries = subprojects.findAll {
+    it.buildFile.exists()
 }
 
-group = 'io.github.honhimw'
-version = libs.versions.version.get()
-description = 'ddl generator for jimmer'
-
-def title = 'DDL generation for jimmer'
-
-repositories {
-    mavenCentral()
+configure(libraries) {
+    group = 'io.github.honhimw'
+    pluginManager.apply 'io.github.honhimw.library'
 }
 
-java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-}
+tasks.register('deployAll') {
+    group 'deploy'
 
-tasks.withType(JavaCompile).configureEach {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
-    options.encoding = UTF_8.name()
-    inputs.files(tasks.withType(ProcessResources))
-    options.compilerArgs << "-Xlint:deprecation"
-//    options.compilerArgs << "-Werror" << "-Xlint:deprecation" << "-Xlint:unchecked"
-}
-
-dependencies {
-    compileOnly(platform(libs.jimmer.bom))
-
-    compileOnly 'org.babyfish.jimmer:jimmer-sql'
-    compileOnly libs.jspecify
-    compileOnly libs.slf4j.api
-
-    testImplementation libs.h2
-    testImplementation(platform(libs.jimmer.bom))
-    testAnnotationProcessor(platform(libs.jimmer.bom))
-    testImplementation 'org.babyfish.jimmer:jimmer-sql'
-    testImplementation libs.jspecify
-    testImplementation libs.hikari
-    testRuntimeOnly libs.postgresql
-    testRuntimeOnly libs.mysql
-    testRuntimeOnly libs.mssql
-    testRuntimeOnly libs.mariadb
-    testRuntimeOnly libs.oracle
-    testRuntimeOnly libs.sqlite
-    testRuntimeOnly libs.logback.classic
-
-    testAnnotationProcessor 'org.babyfish.jimmer:jimmer-apt'
-
-    testImplementation platform('org.junit:junit-bom:5.13.4')
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation 'org.junit.platform:junit-platform-engine'
-    testImplementation 'org.junit.platform:junit-platform-launcher'
-
-    testImplementation platform('org.testcontainers:testcontainers-bom:2.0.1')
-    testImplementation 'org.testcontainers:testcontainers'
-    testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
-    testImplementation 'org.testcontainers:testcontainers-postgresql'
-    testImplementation 'org.testcontainers:testcontainers-mysql'
-    testImplementation 'org.testcontainers:testcontainers-mariadb'
-    testImplementation 'org.testcontainers:testcontainers-mssqlserver'
-    testImplementation 'org.testcontainers:testcontainers-oracle-free'
-    testImplementation 'org.testcontainers:testcontainers-tidb'
-
-}
-
-test {
-    useJUnitPlatform()
-    testLogging {
-        showStandardStreams true
-    }
-}
-
-mavenPublishing {
-    publishToMavenCentral()
-    signAllPublications()
-
-    coordinates(group as String, name, version as String)
-
-    pom {
-        name = title
-        description = project.description
-        url = 'https://github.com/honhimW/jimmer-ddl'
-        licenses {
-            license {
-                name = 'The Apache License, Version 2.0'
-                url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                distribution = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-            }
-        }
-        developers {
-            developer {
-                id = 'honhimw'
-                name = 'honhimw'
-                url = 'https://honhimW.github.io'
-                email = 'honhimw@outlook.com'
-            }
-        }
-        scm {
-            url = 'https://github.com/honhimW/jimmer-ddl'
-            connection = 'scm:git:git://github.com/honhimW/jimmer-ddl.git'
-            developerConnection = 'scm:git:ssh://github.com/honhimW/jimmer-ddl.git'
-        }
-    }
-
-}
-
-jar {
-    enabled(true)
+    dependsOn ':jimmer-manual:publishAllPublicationsToMavenCentralRepository'
+    dependsOn ':jimmer-dml:publishAllPublicationsToMavenCentralRepository'
+    dependsOn ':jimmer-ddl:publishAllPublicationsToMavenCentralRepository'
 }
