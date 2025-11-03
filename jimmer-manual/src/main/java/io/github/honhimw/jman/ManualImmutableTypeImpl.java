@@ -259,4 +259,9 @@ public class ManualImmutableTypeImpl implements ImmutableType {
     public List<ImmutableProp> getPropChain(String columnName, MetadataStrategy strategy, boolean nullable) {
         return propChain;
     }
+
+    @Override
+    public String toString() {
+        return tableName;
+    }
 }

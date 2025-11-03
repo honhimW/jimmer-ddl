@@ -15,10 +15,7 @@ public class ManualImmutableSpi extends AbstractManualSpi implements ImmutableSp
     }
 
     public ManualImmutableSpi set(String prop, Object value) {
-        Val val = properties.get(prop);
-        if (val != null) {
-            val.load(value);
-        }
+        get(prop).ifPresent(val -> val.load(value));
         return this;
     }
 

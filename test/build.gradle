@@ -24,4 +24,7 @@ dependencies {
     implementation 'org.testcontainers:testcontainers-mssqlserver'
     implementation 'org.testcontainers:testcontainers-oracle-free'
     implementation 'org.testcontainers:testcontainers-tidb'
+
+    annotationProcessor platform(libs.jimmer.bom)
+    annotationProcessor 'org.babyfish.jimmer:jimmer-apt'
 }

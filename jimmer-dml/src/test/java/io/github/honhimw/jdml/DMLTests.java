@@ -3,23 +3,22 @@ package io.github.honhimw.jdml;
 import io.github.honhimw.jddl.DDLAuto;
 import io.github.honhimw.jddl.DDLAutoRunner;
 import io.github.honhimw.jddl.manual.ManualTypeBuilder;
-import io.github.honhimw.jman.ManualDraftSpi;
 import io.github.honhimw.jman.ManualImmutableSpi;
-import io.github.honhimw.jman.ManualImmutableTypeImpl;
 import io.github.honhimw.test.AbstractH2;
 import org.babyfish.jimmer.ImmutableObjects;
+import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.sql.JSqlClient;
-import org.babyfish.jimmer.sql.ast.impl.mutation.ISimpleEntitySaveCommandImpl;
+import org.babyfish.jimmer.sql.JoinType;
 import org.babyfish.jimmer.sql.ast.mutation.SaveMode;
 import org.babyfish.jimmer.sql.ast.mutation.SimpleSaveResult;
 import org.babyfish.jimmer.sql.ast.query.MutableRootQuery;
-import org.babyfish.jimmer.sql.ast.table.spi.TableProxy;
+import org.babyfish.jimmer.sql.ast.table.Table;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
-import java.util.Objects;
+import java.util.Arrays;
+import java.util.UUID;
 
 /**
  * @author honhimW
@@ -34,26 +33,35 @@ public class DMLTests extends AbstractH2 {
     }
 
     @Test
-    void select() {
+    void crud() {
         JSqlClient.Builder builder = JSqlClient.newBuilder();
         applyBuilder(builder);
         JSqlClientImplementor sqlClient = DynamicJSqlClientImpl.from((JSqlClientImplementor.Builder) builder);
-        ManualImmutableTypeImpl testType = (ManualImmutableTypeImpl) ManualTypeBuilder.u32("id")
-            .tableName("test")
+        ImmutableType referred = ManualTypeBuilder.of(column -> column.name("id").type(UUID.class)).tableName("REFERRED_TABLE")
+            .addColumn(column -> column.name("name").type(String.class))
+            .build();
+        ImmutableType testType = ManualTypeBuilder.u32("id")
+            .tableName("MAIN_TABLE")
             .addColumn(column -> column
                 .name("name")
                 .type(String.class)
             )
+            .addRelation(fk -> fk
+                .type(referred)
+                .propName("refId")
+                .self(column -> column.nullable(true))
+            )
             .build();
         AnyTableProxy tableProxy = new AnyTableProxy(testType);
-        try (DDLAutoRunner ddlAutoRunner = new DDLAutoRunner(sqlClient, DDLAuto.CREATE_DROP, Collections.singletonList(testType))) {
+        try (DDLAutoRunner ddlAutoRunner = new DDLAutoRunner(sqlClient, DDLAuto.CREATE_DROP, Arrays.asList(referred, testType))) {
             ddlAutoRunner.init();
             ddlAutoRunner.create();
 
             // INSERT
             ManualImmutableSpi entity = new ManualImmutableSpi(testType);
-            entity.set("id", 1);
-            entity.set("name", "bar");
+            entity
+                .set("id", 1)
+                .set("name", "bar");
             SimpleSaveResult<ManualImmutableSpi> insertResult = sqlClient.saveCommand(entity)
                 .setMode(SaveMode.INSERT_ONLY)
                 .execute();
@@ -68,9 +76,9 @@ public class DMLTests extends AbstractH2 {
             Assertions.assertEquals(1, updateResult);
 
             // SELECT
-            MutableRootQuery<TableProxy<Object>> query = sqlClient.createQuery(tableProxy);
-            MutableRootQuery<TableProxy<Object>> id = query.where(tableProxy.get("id").eq(1));
-            Object o = id.select(tableProxy).fetchFirstOrNull();
+            MutableRootQuery<AnyTableProxy> query = sqlClient.createQuery(tableProxy)
+                .where(tableProxy.get("id").eq(1));
+            Object o = query.select(tableProxy).fetchFirst();
             Assertions.assertEquals(1, ImmutableObjects.get(o, "id"));
             Assertions.assertEquals("foo", ImmutableObjects.get(o, "name"));
 
@@ -80,6 +88,14 @@ public class DMLTests extends AbstractH2 {
                 .where(tableProxy.get("name").eq("foo"))
                 .execute();
             Assertions.assertEquals(1, deleteResult);
+
+            // JOIN
+            Table<?> join = tableProxy.join("refId");
+            Object o1 = sqlClient.createQuery(tableProxy)
+                .where(join.get("id").eq(UUID.randomUUID()))
+                .where(join.get("name").eq("???"))
+                .select(tableProxy).fetchFirstOrNull();
+            System.out.println(o1);
 
         }
 

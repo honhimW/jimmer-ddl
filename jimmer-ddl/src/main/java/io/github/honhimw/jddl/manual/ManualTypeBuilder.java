@@ -315,8 +315,12 @@ public class ManualTypeBuilder {
         referenceColumn.columnDef.foreignKey = foreignKey;
         referenceColumn.addAnnotation(referenceColumn.columnDef);
 
-        type.props.put(prop.name, prop);
         prop.declaringType = type;
+        prop.isAssociation = true;
+        prop.id = PropId.byName(prop.name);
+
+        type.props.put(prop.name, prop);
+        type.isAssignableFrom = true;
 
         return this;
     }

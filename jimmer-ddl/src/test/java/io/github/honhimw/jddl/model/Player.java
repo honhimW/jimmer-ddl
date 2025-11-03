@@ -1,6 +1,9 @@
 package io.github.honhimw.jddl.model;
 
-import io.github.honhimw.jddl.anno.*;
+import io.github.honhimw.jddl.anno.Check;
+import io.github.honhimw.jddl.anno.ColumnDef;
+import io.github.honhimw.jddl.anno.Index;
+import io.github.honhimw.jddl.anno.TableDef;
 import org.babyfish.jimmer.sql.*;
 import org.jspecify.annotations.Nullable;
 

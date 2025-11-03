@@ -1,7 +1,6 @@
 package io.github.honhimw.jman;
 
 import org.babyfish.jimmer.UnloadedException;
-import org.babyfish.jimmer.meta.ImmutableProp;
 import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.meta.PropId;
 import org.babyfish.jimmer.runtime.ImmutableSpi;
@@ -24,8 +23,9 @@ public abstract class AbstractManualSpi implements ImmutableSpi {
     protected AbstractManualSpi(ImmutableType type) {
         this.type = type;
         this.properties = new LinkedHashMap<>();
-        Map<String, ImmutableProp> props = type.getProps();
-        props.forEach((s, immutableProp) -> properties.put(s, Val.empty()));
+        type.getProps().forEach((s, immutableProp) -> {
+            properties.put(s, Val.empty());
+        });
     }
 
     protected Optional<Val> get(String prop) {
@@ -49,7 +49,7 @@ public abstract class AbstractManualSpi implements ImmutableSpi {
 
     @Override
     public boolean __isVisible(String prop) {
-        return true;
+        return get(prop).map(Val::isVisible).orElse(false);
     }
 
     @Override
@@ -63,7 +63,7 @@ public abstract class AbstractManualSpi implements ImmutableSpi {
         if (opt.isPresent()) {
             Val val = opt.get();
             if (val.isLoaded()) {
-                return val.getValue();
+                return val.unwrap();
             } else {
                 throw new UnloadedException(getClass(), prop);
             }

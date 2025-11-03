@@ -5,7 +5,7 @@ package io.github.honhimw.jman;
  * @since 2025-10-30
  */
 public class Val {
-    private boolean loaded = false;
+    private int flags = 0;
     private Object value;
 
     public static Val empty() {
@@ -14,20 +14,34 @@ public class Val {
 
     public Val load(Object value) {
         this.value = value;
-        this.loaded = true;
-        return this;
+        this.flags |= 0b001;
+        return visible();
     }
 
     public Val unload() {
-        this.loaded = false;
+        this.flags &= ~1;
+        return this;
+    }
+
+    public Val visible() {
+        this.flags |= 1 << 1;
+        return this;
+    }
+
+    public Val invisible() {
+        this.flags &= ~(1 << 1);
         return this;
     }
 
     public boolean isLoaded() {
-        return loaded;
+        return (1 & flags) != 0;
     }
 
-    public Object getValue() {
+    public boolean isVisible() {
+        return ((1 << 1) & flags) != 0;
+    }
+
+    public Object unwrap() {
         return value;
     }
 

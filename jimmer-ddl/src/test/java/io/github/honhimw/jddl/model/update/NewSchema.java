@@ -5,8 +5,6 @@ import org.babyfish.jimmer.sql.Entity;
 import org.babyfish.jimmer.sql.Id;
 import org.babyfish.jimmer.sql.Table;
 
-import java.sql.Types;
-
 /**
  * @author honhimW
  * @since 2025-10-22

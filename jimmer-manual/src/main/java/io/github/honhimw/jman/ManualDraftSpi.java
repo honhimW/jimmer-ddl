@@ -31,7 +31,12 @@ public class ManualDraftSpi extends AbstractManualSpi implements DraftSpi {
             ImmutableSpi immutableSpi = (ImmutableSpi) base;
             properties.forEach((s, val) -> {
                 if (immutableSpi.__isLoaded(s)) {
-                    this.__set(s, immutableSpi.__get(s));
+                    val.load(immutableSpi.__get(s));
+                }
+                if (immutableSpi.__isVisible(s)) {
+                    val.visible();
+                } else {
+                    val.invisible();
                 }
             });
         }
@@ -64,7 +69,10 @@ public class ManualDraftSpi extends AbstractManualSpi implements DraftSpi {
 
     @Override
     public void __show(String prop, boolean show) {
-
+        get(prop).ifPresent(val -> {
+            if (show) val.visible();
+            else val.invisible();
+        });
     }
 
     @Override
@@ -73,11 +81,11 @@ public class ManualDraftSpi extends AbstractManualSpi implements DraftSpi {
     }
 
     @Override
-    public Object __resolve() {
+    public ManualImmutableSpi __resolve() {
         ManualImmutableSpi manualImmutableSpi = new ManualImmutableSpi(type);
         this.properties.forEach((s, val) -> {
             if (val.isLoaded()) {
-                manualImmutableSpi.set(s, val.getValue());
+                manualImmutableSpi.set(s, val.unwrap());
             }
         });
         return manualImmutableSpi;

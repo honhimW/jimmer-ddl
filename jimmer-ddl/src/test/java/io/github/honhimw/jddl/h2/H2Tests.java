@@ -2,15 +2,11 @@ package io.github.honhimw.jddl.h2;
 
 import com.zaxxer.hikari.HikariDataSource;
 import io.github.honhimw.jddl.AbstractRealDBTests;
-import org.babyfish.jimmer.meta.ImmutableProp;
 import org.babyfish.jimmer.sql.dialect.Dialect;
 import org.babyfish.jimmer.sql.dialect.H2Dialect;
-import org.babyfish.jimmer.sql.dialect.SQLiteDialect;
 import org.jspecify.annotations.Nullable;
-import org.junit.jupiter.api.Assertions;
 
 import javax.sql.DataSource;
-import java.sql.Types;
 
 /**
  * @author honhimW

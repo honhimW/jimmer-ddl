@@ -438,4 +438,9 @@ public class ManualImmutablePropImpl implements ImmutableProp {
     public ImmutableProp toOriginal() {
         return original != null ? original : this;
     }
+
+    @Override
+    public String toString() {
+        return getDeclaringType() + "." + getName();
+    }
 }
