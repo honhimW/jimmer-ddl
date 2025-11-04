@@ -9,6 +9,7 @@ import org.babyfish.jimmer.meta.ImmutableProp;
 import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.meta.PropId;
 import org.babyfish.jimmer.sql.Entity;
+import org.babyfish.jimmer.sql.ManyToOne;
 
 import java.lang.annotation.Annotation;
 import java.util.*;
@@ -317,6 +318,7 @@ public class ManualTypeBuilder {
 
         prop.declaringType = type;
         prop.isAssociation = true;
+        prop.associationAnnotation = new DDLUtils.DefaultManyToOne();
         prop.id = PropId.byName(prop.name);
 
         type.props.put(prop.name, prop);

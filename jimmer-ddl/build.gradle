@@ -2,7 +2,7 @@ version = '0.1.0'
 description = 'ddl generator for jimmer'
 
 dependencies {
-    implementation project(':jimmer-manual')
+    api project(':jimmer-manual')
     compileOnly platform(libs.jimmer.bom)
 
     compileOnly 'org.babyfish.jimmer:jimmer-sql'

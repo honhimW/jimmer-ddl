@@ -22,7 +22,7 @@ void prepareSchemas() {
     ImmutableType main = ManualTypeBuilder.u32("id")
         .tableName("MAIN_TABLE")
         .addColumn(column -> column.name("name").type(String.class))
-        .addRelation(fk -> fk.type(referred).propName("refId")
+        .addRelation(fk -> fk.type(referred).propName("ref")
             .self(column -> column.nullable(true))
         ).build();
     try (DDLAutoRunner ddlAutoRunner = new DDLAutoRunner(sqlClient, DDLAuto.CREATE_DROP, Arrays.asList(referred, main))) {
@@ -109,7 +109,7 @@ void select() {
 }
 
 void selectWithJoin() {
-    Table<?> join = tableProxy.join("refId");
+    Table<?> join = tableProxy.join("ref");
     Object o1 = sqlClient.createQuery(tableProxy)
         .where(join.get("id").eq(UUID.randomUUID()))
         .where(join.get("name").eq("???"))

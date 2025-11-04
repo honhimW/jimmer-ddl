@@ -71,9 +71,9 @@ public class NativeTests extends AbstractH2 {
             Assertions.assertEquals(1, deleteResult);
 
             // JOIN
-//            AnyDelayedOperation anyDelayedOperation = new AnyDelayedOperation(tableProxy, testType.getProp("refId"), JoinType.INNER, null);
+//            AnyDelayedOperation anyDelayedOperation = new AnyDelayedOperation(tableProxy, testType.getProp("ref"), JoinType.INNER, null);
 //            tableProxy = new AnyTableProxy(testType, anyDelayedOperation);
-            Table<?> join = MainTable.$.join("refId");
+            Table<?> join = MainTable.$.join("ref");
             Object o1 = sqlClient.createQuery(MainTable.$)
                 .where(join.get("id").eq(UUID.randomUUID()))
                 .where(join.get("name").eq("???"))

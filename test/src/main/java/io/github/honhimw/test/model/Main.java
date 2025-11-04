@@ -22,6 +22,6 @@ public interface Main {
 
     @Nullable
     @ManyToOne
-    Referred refId();
+    Referred ref();
 
 }

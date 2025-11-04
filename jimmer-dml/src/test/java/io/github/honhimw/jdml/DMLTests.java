@@ -6,6 +6,7 @@ import io.github.honhimw.jddl.manual.ManualTypeBuilder;
 import io.github.honhimw.jman.ManualDraftSpi;
 import io.github.honhimw.jman.ManualImmutableSpi;
 import io.github.honhimw.test.AbstractH2;
+import io.github.honhimw.test.model.MainTable;
 import org.babyfish.jimmer.Draft;
 import org.babyfish.jimmer.ImmutableObjects;
 import org.babyfish.jimmer.meta.ImmutableType;
@@ -14,6 +15,7 @@ import org.babyfish.jimmer.sql.ast.mutation.SaveMode;
 import org.babyfish.jimmer.sql.ast.mutation.SimpleSaveResult;
 import org.babyfish.jimmer.sql.ast.query.MutableRootQuery;
 import org.babyfish.jimmer.sql.ast.table.Table;
+import org.babyfish.jimmer.sql.ast.table.spi.TableProxy;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -49,7 +51,7 @@ public class DMLTests extends AbstractH2 {
             )
             .addRelation(fk -> fk
                 .type(referred)
-                .propName("refId")
+                .propName("ref")
                 .self(column -> column.nullable(true))
             )
             .build();
@@ -57,7 +59,8 @@ public class DMLTests extends AbstractH2 {
             ddlAutoRunner.init();
             ddlAutoRunner.create();
 
-            DynTableProxy tableProxy = new DynTableProxy(main);
+//            TableProxy<Object> tableProxy = new DynTableProxy(main);
+            TableProxy<?> tableProxy = MainTable.$;
             // INSERT
             ManualDraftSpi draft = new ManualDraftSpi(main);
             draft
@@ -78,7 +81,7 @@ public class DMLTests extends AbstractH2 {
             Assertions.assertEquals(1, updateResult);
 
             // SELECT
-            MutableRootQuery<DynTableProxy> query = sqlClient.createQuery(tableProxy)
+            MutableRootQuery<?> query = sqlClient.createQuery(tableProxy)
                 .where(tableProxy.get("id").eq(1));
             Object o = query.select(tableProxy).fetchFirst();
             Assertions.assertEquals(1, ImmutableObjects.get(o, "id"));
@@ -92,7 +95,7 @@ public class DMLTests extends AbstractH2 {
             Assertions.assertEquals(1, deleteResult);
 
             // JOIN
-            Table<?> join = tableProxy.join("refId");
+            Table<?> join = tableProxy.join("ref");
             Object o1 = sqlClient.createQuery(tableProxy)
                 .where(join.get("id").eq(UUID.randomUUID()))
                 .where(join.get("name").eq("???"))

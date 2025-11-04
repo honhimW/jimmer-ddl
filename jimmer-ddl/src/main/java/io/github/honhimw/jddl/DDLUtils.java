@@ -8,6 +8,7 @@ import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.sql.EnumType;
 import org.babyfish.jimmer.sql.GeneratedValue;
 import org.babyfish.jimmer.sql.GenerationType;
+import org.babyfish.jimmer.sql.ManyToOne;
 import org.babyfish.jimmer.sql.meta.MetadataStrategy;
 import org.babyfish.jimmer.sql.meta.SingleColumn;
 import org.babyfish.jimmer.sql.meta.Storage;
@@ -468,6 +469,18 @@ public class DDLUtils {
         @Override
         public Class<? extends Annotation> annotationType() {
             return Check.class;
+        }
+    }
+
+    public static class DefaultManyToOne implements ManyToOne {
+        @Override
+        public boolean inputNotNull() {
+            return false;
+        }
+
+        @Override
+        public Class<? extends Annotation> annotationType() {
+            return ManyToOne.class;
         }
     }
 
