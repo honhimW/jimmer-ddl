@@ -2,18 +2,14 @@ package io.github.honhimw.jddl;
 
 import io.github.honhimw.jddl.anno.ColumnDef;
 import io.github.honhimw.jddl.dialect.DDLDialect;
-import io.github.honhimw.test.AbstractH2;
 import io.github.honhimw.test.AbstractRealDB;
 import org.babyfish.jimmer.meta.ImmutableProp;
 import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.meta.TargetLevel;
 import org.babyfish.jimmer.sql.EnumType;
-import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.dialect.Dialect;
 import org.babyfish.jimmer.sql.dialect.OracleDialect;
 import org.babyfish.jimmer.sql.dialect.SqlServerDialect;
-import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
-import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Assertions;
 
 import java.math.BigDecimal;
@@ -25,7 +21,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**

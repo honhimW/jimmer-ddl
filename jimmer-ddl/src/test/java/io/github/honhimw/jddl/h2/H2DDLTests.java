@@ -4,8 +4,10 @@ import io.github.honhimw.jddl.AbstractDDLTest;
 import io.github.honhimw.jddl.DDLUtils;
 import io.github.honhimw.jddl.DatabaseVersion;
 import io.github.honhimw.jddl.SchemaCreator;
-import io.github.honhimw.jddl.model.Tables;
+import io.github.honhimw.jddl.model.NameTable;
+import io.github.honhimw.jddl.model.PlayerTable;
 import io.github.honhimw.test.DataSourceConnectionManager;
+import io.github.honhimw.test.model.Tables;
 import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.sql.ast.impl.table.TableTypeProvider;
 import org.babyfish.jimmer.sql.ast.table.Table;
@@ -121,8 +123,8 @@ public class H2DDLTests extends AbstractDDLTest {
             tables.add(Tables.BOOK_TABLE);
             tables.add(Tables.COUNTRY_TABLE);
             tables.add(Tables.ORGANIZATION_TABLE);
-            tables.add(Tables.PLAYER_TABLE);
-            tables.add(Tables.NAME_TABLE);
+            tables.add(PlayerTable.$);
+            tables.add(NameTable.$);
             List<ImmutableType> types = tables.stream().map(TableTypeProvider::getImmutableType).collect(Collectors.toList());
             types = DDLUtils.sortByDependent(sqlClient.getMetadataStrategy(), types);
 

@@ -1,10 +1,10 @@
 package io.github.honhimw.jddl;
 
 import io.github.honhimw.test.AbstractH2;
+import io.github.honhimw.test.model.Tables;
 import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.sql.ast.impl.table.TableTypeProvider;
 import org.babyfish.jimmer.sql.ast.table.Table;
-import io.github.honhimw.jddl.model.Tables;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

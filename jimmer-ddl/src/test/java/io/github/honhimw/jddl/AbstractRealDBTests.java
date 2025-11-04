@@ -5,9 +5,11 @@ import io.github.honhimw.jddl.column.ColumnResolver;
 import io.github.honhimw.jddl.dialect.DDLDialect;
 import io.github.honhimw.jddl.model.Modify0Table;
 import io.github.honhimw.jddl.model.Modify1Table;
-import io.github.honhimw.jddl.model.Tables;
+import io.github.honhimw.jddl.model.NameTable;
+import io.github.honhimw.jddl.model.PlayerTable;
 import io.github.honhimw.jddl.model.update.NewSchemaTable;
 import io.github.honhimw.test.DataSourceConnectionManager;
+import io.github.honhimw.test.model.Tables;
 import org.babyfish.jimmer.meta.ImmutableProp;
 import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.sql.ast.impl.table.TableTypeProvider;
@@ -55,8 +57,8 @@ public abstract class AbstractRealDBTests extends AbstractDDLTest {
         tables.add(Tables.BOOK_TABLE);
         tables.add(Tables.COUNTRY_TABLE);
         tables.add(Tables.ORGANIZATION_TABLE);
-        tables.add(Tables.PLAYER_TABLE);
-        tables.add(Tables.NAME_TABLE);
+        tables.add(PlayerTable.$);
+        tables.add(NameTable.$);
 
         List<ImmutableType> types = tables.stream().map(TableTypeProvider::getImmutableType).collect(Collectors.toList());
         DDLAutoRunner ddlAutoRunner = new DDLAutoRunner(sqlClient, DDLAuto.CREATE_DROP, types);
@@ -99,13 +101,13 @@ public abstract class AbstractRealDBTests extends AbstractDDLTest {
         schemaCreator.init();
 
         List<Table<?>> tables = new ArrayList<>();
-        tables.add(Tables.MODIFY0_TABLE);
+        tables.add(Modify0Table.$);
         List<ImmutableType> types = tables.stream().map(TableTypeProvider::getImmutableType).collect(Collectors.toList());
         DDLAutoRunner ddlAutoRunner = new DDLAutoRunner(sqlClient, DDLAuto.CREATE_DROP, types);
         Assertions.assertDoesNotThrow(ddlAutoRunner::create);
 
         DDLDialect ddlDialect = DDLDialect.of(dialect(), DatabaseVersion.LATEST);
-        String tableName = Tables.MODIFY0_TABLE.getImmutableType().getTableName(sqlClient.getMetadataStrategy());
+        String tableName = Modify0Table.$.getImmutableType().getTableName(sqlClient.getMetadataStrategy());
         ImmutableProp lastName = Modify0Table.NAME0.unwrap();
         ColumnModifier columnModifier = ColumnModifier.of(ddlDialect, tableName, DDLUtils.getName(lastName, sqlClient.getMetadataStrategy()));
         List<String> alter = columnModifier.alter(new ColumnResolver(sqlClient, ddlDialect, Modify1Table.NAME1.unwrap()));
