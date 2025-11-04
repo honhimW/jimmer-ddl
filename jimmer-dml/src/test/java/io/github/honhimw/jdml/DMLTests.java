@@ -3,12 +3,13 @@ package io.github.honhimw.jdml;
 import io.github.honhimw.jddl.DDLAuto;
 import io.github.honhimw.jddl.DDLAutoRunner;
 import io.github.honhimw.jddl.manual.ManualTypeBuilder;
+import io.github.honhimw.jman.ManualDraftSpi;
 import io.github.honhimw.jman.ManualImmutableSpi;
 import io.github.honhimw.test.AbstractH2;
+import org.babyfish.jimmer.Draft;
 import org.babyfish.jimmer.ImmutableObjects;
 import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.sql.JSqlClient;
-import org.babyfish.jimmer.sql.JoinType;
 import org.babyfish.jimmer.sql.ast.mutation.SaveMode;
 import org.babyfish.jimmer.sql.ast.mutation.SimpleSaveResult;
 import org.babyfish.jimmer.sql.ast.query.MutableRootQuery;
@@ -36,11 +37,11 @@ public class DMLTests extends AbstractH2 {
     void crud() {
         JSqlClient.Builder builder = JSqlClient.newBuilder();
         applyBuilder(builder);
-        JSqlClientImplementor sqlClient = DynamicJSqlClientImpl.from((JSqlClientImplementor.Builder) builder);
+        JSqlClientImplementor sqlClient = DynJSqlClientImpl.from((JSqlClientImplementor.Builder) builder);
         ImmutableType referred = ManualTypeBuilder.of(column -> column.name("id").type(UUID.class)).tableName("REFERRED_TABLE")
             .addColumn(column -> column.name("name").type(String.class))
             .build();
-        ImmutableType testType = ManualTypeBuilder.u32("id")
+        ImmutableType main = ManualTypeBuilder.u32("id")
             .tableName("MAIN_TABLE")
             .addColumn(column -> column
                 .name("name")
@@ -52,16 +53,17 @@ public class DMLTests extends AbstractH2 {
                 .self(column -> column.nullable(true))
             )
             .build();
-        AnyTableProxy tableProxy = new AnyTableProxy(testType);
-        try (DDLAutoRunner ddlAutoRunner = new DDLAutoRunner(sqlClient, DDLAuto.CREATE_DROP, Arrays.asList(referred, testType))) {
+        try (DDLAutoRunner ddlAutoRunner = new DDLAutoRunner(sqlClient, DDLAuto.CREATE_DROP, Arrays.asList(referred, main))) {
             ddlAutoRunner.init();
             ddlAutoRunner.create();
 
+            DynTableProxy tableProxy = new DynTableProxy(main);
             // INSERT
-            ManualImmutableSpi entity = new ManualImmutableSpi(testType);
-            entity
+            ManualDraftSpi draft = new ManualDraftSpi(main);
+            draft
                 .set("id", 1)
                 .set("name", "bar");
+            ManualImmutableSpi entity = draft.__resolve();
             SimpleSaveResult<ManualImmutableSpi> insertResult = sqlClient.saveCommand(entity)
                 .setMode(SaveMode.INSERT_ONLY)
                 .execute();
@@ -76,7 +78,7 @@ public class DMLTests extends AbstractH2 {
             Assertions.assertEquals(1, updateResult);
 
             // SELECT
-            MutableRootQuery<AnyTableProxy> query = sqlClient.createQuery(tableProxy)
+            MutableRootQuery<DynTableProxy> query = sqlClient.createQuery(tableProxy)
                 .where(tableProxy.get("id").eq(1));
             Object o = query.select(tableProxy).fetchFirst();
             Assertions.assertEquals(1, ImmutableObjects.get(o, "id"));

@@ -204,9 +204,7 @@ public class ISimpleEntitySaveCommandImpl<E>
                 .getConnectionManager()
                 .execute(
                         con == null ? options.getConnection() : con,
-                        c -> {
-                            return executeImpl(c, fetcher);
-                        }
+                        c -> executeImpl(c, fetcher)
                 );
     }
 
@@ -218,14 +216,11 @@ public class ISimpleEntitySaveCommandImpl<E>
                 .getConnectionManager()
                 .execute(
                         con == null ? options.getConnection() : con,
-                        c -> {
-                            return executeImpl(c, metadata.getFetcher());
-                        }
+                        c -> executeImpl(c, metadata.getFetcher())
                 );
         return result.toView(metadata.getConverter());
     }
 
-    @SuppressWarnings("unchecked")
     private SimpleSaveResult<E> executeImpl(Connection con, Fetcher<E> fetcher) {
         OptionsImpl options = options();
         return saver(con, fetcher).save(options.getArument());

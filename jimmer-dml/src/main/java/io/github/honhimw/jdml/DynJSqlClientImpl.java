@@ -4,9 +4,7 @@ import org.babyfish.jimmer.sql.ast.impl.mutation.ISimpleEntitySaveCommandImpl;
 import org.babyfish.jimmer.sql.ast.mutation.SimpleEntitySaveCommand;
 import org.babyfish.jimmer.sql.di.AbstractJSqlClientDelegate;
 import org.babyfish.jimmer.sql.meta.IdGenerator;
-import org.babyfish.jimmer.sql.meta.UserIdGenerator;
 import org.babyfish.jimmer.sql.meta.impl.IdentityIdGenerator;
-import org.babyfish.jimmer.sql.meta.impl.SequenceIdGenerator;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 
 /**
@@ -14,19 +12,19 @@ import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
  * @since 2025-10-30
  */
 
-public class DynamicJSqlClientImpl extends AbstractJSqlClientDelegate {
+public class DynJSqlClientImpl extends AbstractJSqlClientDelegate {
 
     private final JSqlClientImplementor delegate;
 
-    public DynamicJSqlClientImpl(JSqlClientImplementor delegate) {
+    public DynJSqlClientImpl(JSqlClientImplementor delegate) {
         this.delegate = delegate;
     }
 
-    public static DynamicJSqlClientImpl from(JSqlClientImplementor.Builder builder) {
+    public static DynJSqlClientImpl from(JSqlClientImplementor.Builder builder) {
         JSqlClientImplementor sqlClient = (JSqlClientImplementor) builder
             .setEntityManager(new NoDissociationEntityManager())
             .build();
-        return new DynamicJSqlClientImpl(sqlClient);
+        return new DynJSqlClientImpl(sqlClient);
     }
 
     @Override

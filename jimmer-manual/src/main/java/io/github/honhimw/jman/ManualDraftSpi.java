@@ -62,6 +62,11 @@ public class ManualDraftSpi extends AbstractManualSpi implements DraftSpi {
         get(prop).ifPresent(val -> val.load(value));
     }
 
+    public ManualDraftSpi set(String prop, Object value) {
+        __set(prop, value);
+        return this;
+    }
+
     @Override
     public void __show(PropId prop, boolean show) {
         __show(prop.asName(), show);

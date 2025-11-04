@@ -15,21 +15,21 @@ import org.babyfish.jimmer.sql.ast.table.spi.AbstractTypedTable;
  * @since 2025-10-31
  */
 
-public class AnyDelayedOperation implements AbstractTypedTable.DelayedOperation<Object> {
+public class DynDelayedOperation implements AbstractTypedTable.DelayedOperation<Object> {
 
     private final AbstractTypedTable<?> parent;
     private final ImmutableProp prop;
     private final JoinType joinType;
     private final ImmutableType treatedAs;
 
-    public AnyDelayedOperation(AbstractTypedTable<?> parent, ImmutableProp prop, JoinType joinType, ImmutableType treatedAs) {
+    public DynDelayedOperation(AbstractTypedTable<?> parent, ImmutableProp prop, JoinType joinType, ImmutableType treatedAs) {
         this.parent = parent;
         this.prop = prop;
         this.joinType = joinType;
         this.treatedAs = treatedAs;
     }
 
-    public AnyDelayedOperation(AnyDelayedOperation base, BaseTableOwner baseTableOwner) {
+    public DynDelayedOperation(DynDelayedOperation base, BaseTableOwner baseTableOwner) {
         this.parent = (AbstractTypedTable<?>) base.parent.__baseTableOwner(baseTableOwner);
         this.joinType = base.joinType;
         this.treatedAs = base.treatedAs;
@@ -74,9 +74,19 @@ public class AnyDelayedOperation implements AbstractTypedTable.DelayedOperation<
 
     @Override
     public AbstractTypedTable.DelayedOperation<Object> baseTableOwner(BaseTableOwner baseTableOwner) {
-        return new AnyDelayedOperation(
+        return new DynDelayedOperation(
             this,
             baseTableOwner
         );
+    }
+
+    @Override
+    public String toString() {
+        return "AnyDelayedOperation{" +
+               "parent=" + parent +
+               ", prop=" + prop +
+               ", joinType=" + joinType +
+               ", treatedAs=" + treatedAs +
+               '}';
     }
 }

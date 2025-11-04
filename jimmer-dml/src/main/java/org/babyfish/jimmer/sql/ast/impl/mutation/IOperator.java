@@ -32,10 +32,8 @@ import org.babyfish.jimmer.sql.runtime.*;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
 import java.sql.*;
 import java.util.*;
-import java.util.List;
 
 class IOperator {
 
@@ -244,6 +242,7 @@ class IOperator {
             if (!batch.shape().getIdGetters().isEmpty()) {
                 conflictProps = Collections.singletonList(batch.shape().getType().getIdProp());
             } else {
+                assert keyProps != null;
                 conflictProps = new ArrayList<>(keyProps);
                 LogicalDeletedInfo logicalDeletedInfo = batch.shape().getType().getLogicalDeletedInfo();
                 if (logicalDeletedInfo != null) {
@@ -640,9 +639,7 @@ class IOperator {
             return false;
         }
         PropId idPropId = shape.getType().getIdProp().getId();
-        Iterator<EntityCollection.Item<DraftSpi>> itr = entities.items().iterator();
-        while (itr.hasNext()) {
-            EntityCollection.Item<DraftSpi> item = itr.next();
+        for (EntityCollection.Item<DraftSpi> item : entities.items()) {
             if (item.getEntity().__isLoaded(idPropId)) {
                 continue;
             }
@@ -901,6 +898,7 @@ class IOperator {
     ) {
         String state = ex.getSQLState();
         if (state == null || !state.startsWith("23") || !(ex instanceof BatchUpdateException)) {
+            assert ctx != null;
             return convertFinalException(ex, ctx);
         }
         BatchUpdateException bue = (BatchUpdateException) ex;
@@ -915,6 +913,7 @@ class IOperator {
         if (investigateEx == null) {
             investigateEx = bue;
         }
+        assert ctx != null;
         return convertFinalException(investigateEx, ctx);
     }
 

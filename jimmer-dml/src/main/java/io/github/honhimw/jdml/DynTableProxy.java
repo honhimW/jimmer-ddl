@@ -19,25 +19,25 @@ import org.babyfish.jimmer.sql.ast.table.spi.TableProxy;
  * @since 2025-10-28
  */
 
-public class AnyTableProxy extends AbstractTypedTable<Object> {
+public class DynTableProxy extends AbstractTypedTable<Object> {
 
     private final Table<Object> parent;
 
     private final DelayedOperation<Object> delayedOperation;
 
-    public AnyTableProxy(ImmutableType type) {
+    public DynTableProxy(ImmutableType type) {
         this(type, null, null);
     }
 
-    public AnyTableProxy(ImmutableType type, DelayedOperation<Object> delayedOperation) {
+    public DynTableProxy(ImmutableType type, DelayedOperation<Object> delayedOperation) {
         this(type, null, delayedOperation);
     }
 
-    public AnyTableProxy(ImmutableType type, Table<Object> parent) {
+    public DynTableProxy(ImmutableType type, Table<Object> parent) {
         this(type, parent, null);
     }
 
-    public AnyTableProxy(ImmutableType type, Table<Object> parent, DelayedOperation<Object> delayedOperation) {
+    public DynTableProxy(ImmutableType type, Table<Object> parent, DelayedOperation<Object> delayedOperation) {
         super(type);
         this.parent = parent;
         this.delayedOperation = delayedOperation;
@@ -88,7 +88,7 @@ public class AnyTableProxy extends AbstractTypedTable<Object> {
     @SuppressWarnings("unchecked")
     @Override
     public <XT extends Table<?>> XT join(ImmutableProp prop, JoinType joinType, ImmutableType treatedAs) {
-        return (XT) new AnyTableProxy(prop.getTargetType(), this, new AnyDelayedOperation(this, prop, joinType, treatedAs));
+        return (XT) new DynTableProxy(prop.getTargetType(), this, new DynDelayedOperation(this, prop, joinType, treatedAs));
     }
 
     @Override
@@ -117,11 +117,7 @@ public class AnyTableProxy extends AbstractTypedTable<Object> {
                 return tableImplementor.baseTableOwner(baseTableOwner);
             }
         }
-        throw new RuntimeException("fuck");
-//        while (statement.getParent() != null) {
-//            statement = statement.getParent();
-//        }
-//        return (TableImplementor<Object>) statement.getTableLikeImplementor();
+        return super.__resolve(resolver);
     }
 
     @Override
