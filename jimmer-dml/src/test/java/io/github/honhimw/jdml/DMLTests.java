@@ -59,8 +59,8 @@ public class DMLTests extends AbstractH2 {
             ddlAutoRunner.init();
             ddlAutoRunner.create();
 
-//            TableProxy<Object> tableProxy = new DynTableProxy(main);
-            TableProxy<?> tableProxy = MainTable.$;
+            TableProxy<?> tableProxy = new DynTableProxy(main);
+//            TableProxy<?> tableProxy = MainTable.$;
             // INSERT
             ManualDraftSpi draft = new ManualDraftSpi(main);
             draft

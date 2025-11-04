@@ -10,6 +10,12 @@ import org.babyfish.jimmer.runtime.ImmutableSpi;
 
 public class ManualImmutableSpi extends AbstractManualSpi implements ImmutableSpi {
 
+    public static ManualImmutableSpi from(ImmutableSpi immutableSpi) {
+        ManualImmutableSpi manualImmutableSpi = new ManualImmutableSpi(immutableSpi.__type());
+        copyTo(immutableSpi, manualImmutableSpi.properties);
+        return manualImmutableSpi;
+    }
+
     public ManualImmutableSpi(ImmutableType type) {
         super(type);
     }
@@ -17,6 +23,10 @@ public class ManualImmutableSpi extends AbstractManualSpi implements ImmutableSp
     public ManualImmutableSpi set(String prop, Object value) {
         get(prop).ifPresent(val -> val.load(value));
         return this;
+    }
+
+    public ManualDraftSpi asDraft() {
+        return ManualDraftSpi.from(this);
     }
 
 }

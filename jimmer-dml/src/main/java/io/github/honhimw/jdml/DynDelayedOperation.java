@@ -31,9 +31,9 @@ public class DynDelayedOperation implements AbstractTypedTable.DelayedOperation<
 
     public DynDelayedOperation(DynDelayedOperation base, BaseTableOwner baseTableOwner) {
         this.parent = (AbstractTypedTable<?>) base.parent.__baseTableOwner(baseTableOwner);
+        this.prop = base.prop;
         this.joinType = base.joinType;
         this.treatedAs = base.treatedAs;
-        this.prop = base.prop;
     }
 
     @Override

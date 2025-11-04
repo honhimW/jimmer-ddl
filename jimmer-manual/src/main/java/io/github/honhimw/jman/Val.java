@@ -4,6 +4,7 @@ package io.github.honhimw.jman;
  * @author honhimW
  * @since 2025-10-30
  */
+
 public class Val {
     private int flags = 0;
     private Object value;

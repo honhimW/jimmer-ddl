@@ -23,12 +23,10 @@ public abstract class AbstractManualSpi implements ImmutableSpi {
     protected AbstractManualSpi(ImmutableType type) {
         this.type = type;
         this.properties = new LinkedHashMap<>();
-        type.getProps().forEach((s, immutableProp) -> {
-            properties.put(s, Val.empty());
-        });
+        type.getProps().forEach((s, immutableProp) -> properties.put(s, Val.empty()));
     }
 
-    protected Optional<Val> get(String prop) {
+    public Optional<Val> get(String prop) {
         return Optional.ofNullable(properties.get(prop));
     }
 
@@ -85,6 +83,36 @@ public abstract class AbstractManualSpi implements ImmutableSpi {
     @Override
     public ImmutableType __type() {
         return type;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("type=").append(type).append(", properties={").append(properties);
+        String separator = "";
+        for (Map.Entry<String, Val> entry : properties.entrySet()) {
+            Val value = entry.getValue();
+            if (value.isVisible()) {
+                sb.append(separator);
+                separator = ",";
+                sb.append(entry.getKey()).append("=").append(value.unwrap());
+            }
+        }
+        sb.append("}");
+        return sb.toString();
+    }
+
+    protected static void copyTo(ImmutableSpi immutableSpi, Map<String, Val> properties) {
+        properties.forEach((s, val) -> {
+            if (immutableSpi.__isLoaded(s)) {
+                val.load(immutableSpi.__get(s));
+            }
+            if (immutableSpi.__isVisible(s)) {
+                val.visible();
+            } else {
+                val.invisible();
+            }
+        });
     }
 
 }

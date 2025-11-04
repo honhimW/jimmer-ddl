@@ -14,6 +14,12 @@ import org.jspecify.annotations.Nullable;
 
 public class ManualDraftSpi extends AbstractManualSpi implements DraftSpi {
 
+    public static ManualDraftSpi from(ImmutableSpi immutableSpi) {
+        ManualDraftSpi manualDraftSpi = new ManualDraftSpi(immutableSpi.__type());
+        copyTo(immutableSpi, manualDraftSpi.properties);
+        return manualDraftSpi;
+    }
+
     private final DraftContext ctx;
 
     public ManualDraftSpi(ImmutableType type) {
@@ -29,16 +35,7 @@ public class ManualDraftSpi extends AbstractManualSpi implements DraftSpi {
         this.ctx = ctx;
         if (base instanceof ImmutableSpi) {
             ImmutableSpi immutableSpi = (ImmutableSpi) base;
-            properties.forEach((s, val) -> {
-                if (immutableSpi.__isLoaded(s)) {
-                    val.load(immutableSpi.__get(s));
-                }
-                if (immutableSpi.__isVisible(s)) {
-                    val.visible();
-                } else {
-                    val.invisible();
-                }
-            });
+            copyTo(immutableSpi, properties);
         }
     }
 
@@ -87,17 +84,15 @@ public class ManualDraftSpi extends AbstractManualSpi implements DraftSpi {
 
     @Override
     public ManualImmutableSpi __resolve() {
-        ManualImmutableSpi manualImmutableSpi = new ManualImmutableSpi(type);
-        this.properties.forEach((s, val) -> {
-            if (val.isLoaded()) {
-                manualImmutableSpi.set(s, val.unwrap());
-            }
-        });
-        return manualImmutableSpi;
+        return ManualImmutableSpi.from(this);
     }
 
     @Override
     public boolean __isResolved() {
         return true;
+    }
+
+    public ManualImmutableSpi asImmutable() {
+        return ManualImmutableSpi.from(this);
     }
 }
