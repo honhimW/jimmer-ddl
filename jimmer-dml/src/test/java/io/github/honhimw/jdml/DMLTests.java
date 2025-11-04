@@ -6,8 +6,6 @@ import io.github.honhimw.jddl.manual.ManualTypeBuilder;
 import io.github.honhimw.jman.ManualDraftSpi;
 import io.github.honhimw.jman.ManualImmutableSpi;
 import io.github.honhimw.test.AbstractH2;
-import io.github.honhimw.test.model.MainTable;
-import org.babyfish.jimmer.Draft;
 import org.babyfish.jimmer.ImmutableObjects;
 import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.sql.JSqlClient;
@@ -62,11 +60,10 @@ public class DMLTests extends AbstractH2 {
             TableProxy<?> tableProxy = new DynTableProxy(main);
 //            TableProxy<?> tableProxy = MainTable.$;
             // INSERT
-            ManualDraftSpi draft = new ManualDraftSpi(main);
-            draft
+            ManualImmutableSpi entity = new ManualDraftSpi(main)
                 .set("id", 1)
-                .set("name", "bar");
-            ManualImmutableSpi entity = draft.__resolve();
+                .set("name", "bar")
+                .asImmutable();
             SimpleSaveResult<ManualImmutableSpi> insertResult = sqlClient.saveCommand(entity)
                 .setMode(SaveMode.INSERT_ONLY)
                 .execute();

@@ -15,7 +15,11 @@ import org.jspecify.annotations.Nullable;
 public class ManualDraftSpi extends AbstractManualSpi implements DraftSpi {
 
     public static ManualDraftSpi from(ImmutableSpi immutableSpi) {
-        ManualDraftSpi manualDraftSpi = new ManualDraftSpi(immutableSpi.__type());
+        return from(immutableSpi, immutableSpi.__type());
+    }
+
+    public static ManualDraftSpi from(ImmutableSpi immutableSpi, ImmutableType type) {
+        ManualDraftSpi manualDraftSpi = new ManualDraftSpi(type);
         copyTo(immutableSpi, manualDraftSpi.properties);
         return manualDraftSpi;
     }

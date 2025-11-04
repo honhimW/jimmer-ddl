@@ -5,6 +5,7 @@ package io.github.honhimw.jman;
  * @since 2025-10-30
  */
 
+@SuppressWarnings("UnusedReturnValue")
 public class Val {
     private int flags = 0;
     private Object value;
@@ -46,4 +47,11 @@ public class Val {
         return value;
     }
 
+    @Override
+    public String toString() {
+        return "Val{" +
+               "flags=" + Integer.toBinaryString(flags) +
+               ", value=" + value +
+               '}';
+    }
 }
