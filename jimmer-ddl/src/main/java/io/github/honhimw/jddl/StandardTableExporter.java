@@ -211,9 +211,7 @@ public class StandardTableExporter implements Exporter<ImmutableType> {
     private void appendColumns(BufferContext bufferContext) {
         Map<String, ImmutableProp> selectableProps = bufferContext.tableType.getSelectableProps();
         boolean isFirst = true;
-        for (Map.Entry<String, ImmutableProp> entry : selectableProps.entrySet()) {
-            ImmutableProp selectableProp = entry.getValue();
-
+        for (ImmutableProp selectableProp : selectableProps.values()) {
             List<ImmutableProp> props = new ArrayList<>();
             if (selectableProp.isEmbedded(EmbeddedLevel.BOTH)) {
                 ImmutableType targetType = selectableProp.getTargetType();

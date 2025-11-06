@@ -76,17 +76,16 @@ public class DDLDesignTests extends AbstractH2 {
     @Test
     void builder() {
         List<ImmutableType> types = new ArrayList<>();
-        ManualTypeBuilder table3Builder = ManualTypeBuilder.of(column -> column
-            .name("id")
-            .type(UUID.class)
-        ).tableName("TEST_TABLE3");
+        ManualTypeBuilder table3Builder = ManualTypeBuilder.of("TEST_TABLE3")
+            .addColumn(column -> column.name("id").type(UUID.class).primaryKey());
         ImmutableType table3 = table3Builder.build();
         types.add(table3);
-        ManualTypeBuilder table4Builder = ManualTypeBuilder.u32("id").tableName("TEST_TABLE4");
+        ManualTypeBuilder table4Builder = ManualTypeBuilder.of("TEST_TABLE4")
+            .addColumn(column -> column.name("id").type(Integer.TYPE).primaryKey().autoIncrement());
         ImmutableType table4 = table4Builder.build();
         types.add(table4);
-        ManualTypeBuilder referenceTableBuilder = ManualTypeBuilder.u64("id");
-        ImmutableType table2 = referenceTableBuilder
+        ImmutableType table2 = ManualTypeBuilder.of("TEST_TABLE2")
+            .addColumn(column -> column.name("id").type(Long.TYPE).primaryKey().autoIncrement())
             .tableName("TEST_TABLE2")
             .addIndex(Kind.PATH, "name")
             .addUnique(Kind.PATH, "name")

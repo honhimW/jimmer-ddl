@@ -38,22 +38,26 @@ public class DMLTests extends AbstractH2 {
         JSqlClient.Builder builder = JSqlClient.newBuilder();
         applyBuilder(builder);
         JSqlClientImplementor sqlClient = DynJSqlClientImpl.from((JSqlClientImplementor.Builder) builder);
-        ImmutableType referred = ManualTypeBuilder.of(column -> column.name("id").type(UUID.class)).tableName("REFERRED_TABLE")
+        ImmutableType referred = ManualTypeBuilder.of("REFERRED_TABLE")
+            .addColumn(column -> column.name("id").type(UUID.class).primaryKey())
             .addColumn(column -> column.name("name").type(String.class))
             .build();
-        ImmutableType main = ManualTypeBuilder.u32("id")
-            .tableName("MAIN_TABLE")
-            .addColumn(column -> column
-                .name("name")
-                .type(String.class)
-            )
+        ImmutableType main = ManualTypeBuilder.of("MAIN_TABLE")
+            .addColumn(column -> column.name("id").type(Integer.TYPE).primaryKey().autoIncrement())
+//            .u32("id").tableName("MAIN_TABLE")
+            .addColumn(column -> column.name("name").type(String.class))
             .addRelation(fk -> fk
                 .type(referred)
                 .propName("ref")
                 .self(column -> column.nullable(true))
             )
             .build();
-        try (DDLAutoRunner ddlAutoRunner = new DDLAutoRunner(sqlClient, DDLAuto.CREATE_DROP, Arrays.asList(referred, main))) {
+        ImmutableType compositeId = ManualTypeBuilder.of("COMPOSITE_TABLE")
+            .addColumn(column -> column.name("id0").type(String.class).primaryKey())
+            .addColumn(column -> column.name("id1").type(String.class).primaryKey())
+            .addColumn(column -> column.name("name").type(String.class))
+            .build();
+        try (DDLAutoRunner ddlAutoRunner = new DDLAutoRunner(sqlClient, DDLAuto.CREATE_DROP, Arrays.asList(referred, main, compositeId))) {
             ddlAutoRunner.init();
             ddlAutoRunner.create();
 

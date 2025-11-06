@@ -19,8 +19,8 @@ void prepareSchemas() {
         .tableName("REFERRED_TABLE")
         .addColumn(column -> column.name("name").type(String.class))
         .build();
-    ImmutableType main = ManualTypeBuilder.u32("id")
-        .tableName("MAIN_TABLE")
+    ImmutableType main = ManualTypeBuilder.of("MAIN_TABLE")
+        .addColumn(column -> column.name("id").type(Integer.TYPE).primaryKey().autoIncrement())
         .addColumn(column -> column.name("name").type(String.class))
         .addRelation(fk -> fk.type(referred).propName("ref")
             .self(column -> column.nullable(true))

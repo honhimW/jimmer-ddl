@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 
 public class DDLAutoRunner implements AutoCloseable {
 
-    private static final Logger log = LoggerFactory.getLogger("jimmer.ddl.sql");
+    private static final Logger LOGGER = LoggerFactory.getLogger("jimmer.ddl.sql");
 
     private final JSqlClientImplementor client;
 
@@ -32,10 +32,17 @@ public class DDLAutoRunner implements AutoCloseable {
 
     private SchemaValidator.Schemas schemas = SchemaValidator.Schemas.EMPTY;
 
+    private Logger log = LOGGER;
+
     public DDLAutoRunner(JSqlClientImplementor client, DDLAuto ddlAuto, List<? extends ImmutableType> types) {
         this.client = client;
         this.ddlAuto = ddlAuto;
         this.types = new ArrayList<>(types);
+    }
+
+    public DDLAutoRunner logger(Logger logger) {
+        this.log = logger;
+        return this;
     }
 
     public void init() {
@@ -110,9 +117,7 @@ public class DDLAutoRunner implements AutoCloseable {
             client.getConnectionManager().execute(connection -> {
                 try {
                     for (String sqlCreateString : sqlCreateStrings) {
-                        if (log.isDebugEnabled()) {
-                            log.debug(sqlCreateString);
-                        }
+                        log(sqlCreateString);
                         PreparedStatement preparedStatement = connection.prepareStatement(sqlCreateString);
                         preparedStatement.execute();
                     }
@@ -149,9 +154,7 @@ public class DDLAutoRunner implements AutoCloseable {
             client.getConnectionManager().execute(connection -> {
                 try {
                     for (String sqlAddColumnString : sqlAddColumnStrings) {
-                        if (log.isDebugEnabled()) {
-                            log.debug(sqlAddColumnString);
-                        }
+                        log(sqlAddColumnString);
                         PreparedStatement preparedStatement = connection.prepareStatement(sqlAddColumnString);
                         preparedStatement.execute();
                     }
@@ -171,9 +174,7 @@ public class DDLAutoRunner implements AutoCloseable {
             client.getConnectionManager().execute(connection -> {
                 try {
                     for (String sqlDropString : sqlDropStrings) {
-                        if (log.isDebugEnabled()) {
-                            log.debug(sqlDropString);
-                        }
+                        log(sqlDropString);
                         PreparedStatement preparedStatement = connection.prepareStatement(sqlDropString);
                         preparedStatement.execute();
                     }
@@ -182,6 +183,12 @@ public class DDLAutoRunner implements AutoCloseable {
                 }
                 return null;
             });
+        }
+    }
+
+    private void log(String message, Object... args) {
+        if (log.isDebugEnabled()) {
+            log.debug(message, args);
         }
     }
 

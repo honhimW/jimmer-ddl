@@ -5,10 +5,7 @@ import io.github.honhimw.jddl.DDLAutoRunner;
 import io.github.honhimw.jddl.manual.ManualTypeBuilder;
 import io.github.honhimw.jman.ManualImmutableSpi;
 import io.github.honhimw.test.AbstractH2;
-import io.github.honhimw.test.model.Main;
-import io.github.honhimw.test.model.MainDraft;
-import io.github.honhimw.test.model.MainTable;
-import io.github.honhimw.test.model.ReferredTable;
+import io.github.honhimw.test.model.*;
 import org.babyfish.jimmer.ImmutableObjects;
 import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.sql.JSqlClient;
@@ -34,7 +31,11 @@ public class NativeTests extends AbstractH2 {
     void crud() {
         JSqlClientImplementor sqlClient = getSqlClient();
 
-        try (DDLAutoRunner ddlAutoRunner = new DDLAutoRunner(sqlClient, DDLAuto.CREATE_DROP, Arrays.asList(MainTable.$.getImmutableType(), ReferredTable.$.getImmutableType()))) {
+        try (DDLAutoRunner ddlAutoRunner = new DDLAutoRunner(sqlClient, DDLAuto.CREATE_DROP, Arrays.asList(
+            MainTable.$.getImmutableType(),
+            ReferredTable.$.getImmutableType(),
+            BookStoreTable.$.getImmutableType()
+        ))) {
             ddlAutoRunner.init();
             ddlAutoRunner.create();
 

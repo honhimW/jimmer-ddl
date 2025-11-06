@@ -8,8 +8,8 @@ import io.github.honhimw.jman.ManualImmutableTypeImpl;
 import org.babyfish.jimmer.meta.ImmutableProp;
 import org.babyfish.jimmer.meta.ImmutableType;
 import org.babyfish.jimmer.meta.PropId;
+import org.babyfish.jimmer.sql.Embeddable;
 import org.babyfish.jimmer.sql.Entity;
-import org.babyfish.jimmer.sql.ManyToOne;
 
 import java.lang.annotation.Annotation;
 import java.util.*;
@@ -34,75 +34,36 @@ public class ManualTypeBuilder {
         }
     };
 
+    public static final Embeddable EMBEDDABLE = new Embeddable() {
+        @Override
+        public Class<? extends Annotation> annotationType() {
+            return Embeddable.class;
+        }
+    };
+
     private final ManualImmutableTypeImpl type = new ManualImmutableTypeImpl();
 
     private final DDLUtils.DefaultTableDef tableDef = new DDLUtils.DefaultTableDef();
 
-    /**
-     * varchar(255) id builder
-     *
-     * @param id id column name
-     * @return new builder
-     */
-    public static ManualTypeBuilder string(String id) {
-        return of(column -> column.name(id).type(String.class));
-    }
+    private final List<Column> id = new ArrayList<>();
+    private final List<Column> other = new ArrayList<>();
 
-    /**
-     * int32 auto-increment id builder
-     *
-     * @param id id column name
-     * @return new builder
-     */
-    public static ManualTypeBuilder u32(String id) {
-        return of(column -> column.name(id).type(Integer.class).addAnnotation(new DDLUtils.DefaultGeneratedValue()));
-    }
-
-    /**
-     * int64 auto-increment id builder
-     *
-     * @param id id column name
-     * @return new builder
-     */
-    public static ManualTypeBuilder u64(String id) {
-        return of(column -> column.name(id).type(Long.class).addAnnotation(new DDLUtils.DefaultGeneratedValue()));
-    }
-
-    /**
-     * The table must have an primary-key column
-     *
-     * @param id id column configurer
-     * @return new builder
-     */
-    public static ManualTypeBuilder of(Consumer<Column> id) {
+    public static ManualTypeBuilder of(String tableName) {
         ManualTypeBuilder builder = new ManualTypeBuilder();
-        ManualImmutablePropImpl prop = new ManualImmutablePropImpl();
-        prop.isId = true;
-
-        Column column = new Column(prop);
-        id.accept(column);
-        column.addAnnotation(column.columnDef);
-        _assert(isNotBlank(prop.name), "`prop.name` should not be blank");
-        _assert(prop.returnClass != null, "`prop.returnClass` should not be null");
-
-        ManualImmutableTypeImpl type = builder.type;
-        type.idProp = prop;
-        type.props.put(prop.name, prop);
-        prop.declaringType = type;
-        type.allTypes = Collections.singleton(type);
-        type.isEntity = true;
-        type.immutableAnnotation = ENTITY;
-        type.draftFactory = (draftContext, o) -> new ManualDraftSpi(type, draftContext, o);
-        return builder;
+        return builder.tableName(tableName);
     }
 
     private ManualTypeBuilder() {
+        initType(type);
+        type.annotations = new Annotation[]{tableDef};
+    }
+
+    private void initType(ManualImmutableTypeImpl type) {
         type.javaClass = Object.class;
         Map<String, ImmutableProp> props = new LinkedHashMap<>();
         type.props = props;
         type.selectableProps = props;
         type.superTypes = Collections.emptySet();
-        type.annotations = new Annotation[]{tableDef};
     }
 
     /**
@@ -242,16 +203,18 @@ public class ManualTypeBuilder {
      */
     public ManualTypeBuilder addColumn(Consumer<Column> c) {
         ManualImmutablePropImpl prop = new ManualImmutablePropImpl();
-        prop.isId = false;
 
         Column column = new Column(prop);
         c.accept(column);
-        column.addAnnotation(column.columnDef);
         _assert(isNotBlank(prop.name), "`prop.name` should not be blank");
         _assert(prop.returnClass != null, "`prop.returnClass` should not be null");
 
-        type.props.put(prop.name, prop);
-        prop.declaringType = type;
+        if (column.primaryKey) {
+            id.add(column);
+        } else {
+            other.add(column);
+        }
+
         return this;
     }
 
@@ -269,20 +232,17 @@ public class ManualTypeBuilder {
         _assert(isNotBlank(fk.propName), "`referenceProp.name` should not be blank");
         _assert(fk.referenceType != null || fk.idConsumer != null, "either `fk.referenceType` or `fk.consumer` should be set");
         ManualImmutablePropImpl prop = new ManualImmutablePropImpl();
+        prop.name = fk.propName;
+        prop.isId = false;
+        prop.isTargetForeignKeyReal = true;
+        prop.returnClass = Object.class;
+        prop.isReference = true;
         if (fk.referenceType != null) {
-            prop.isId = false;
-            prop.isTargetForeignKeyReal = true;
-            prop.name = fk.propName;
-            prop.returnClass = Object.class;
-            prop.isReference = true;
             prop.targetType = fk.referenceType;
         } else {
             // Construct dependent type & type#id
             ManualImmutableTypeImpl referencedType = new ManualImmutableTypeImpl();
-            Map<String, ImmutableProp> referencedTypeProps = new LinkedHashMap<>();
-            referencedType.props = referencedTypeProps;
-            referencedType.selectableProps = referencedTypeProps;
-            referencedType.superTypes = Collections.emptySet();
+            initType(referencedType);
 
             ManualImmutablePropImpl referencedId = new ManualImmutablePropImpl();
             referencedId.isId = true;
@@ -291,19 +251,12 @@ public class ManualTypeBuilder {
             Column idColumn = new Column(referencedId);
             fk.idConsumer.accept(idColumn);
             referencedType.tableName = fk.tableName;
-            idColumn.addAnnotation(idColumn.columnDef);
             _assert(isNotBlank(referencedId.name), "`referencedId.name` should not be blank");
             _assert(referencedId.returnClass != null, "`referencedId.returnClass` should not be null");
-            _assert(isNotBlank(fk.propName), "`referenceProp.name` should not be blank");
 
-            referencedTypeProps.put(idColumn.prop.name, referencedId);
+            referencedType.props.put(idColumn.prop.name, referencedId);
 
             // Construct reference prop
-            prop.isId = false;
-            prop.isTargetForeignKeyReal = true;
-            prop.name = fk.propName;
-            prop.returnClass = Object.class;
-            prop.isReference = true;
             prop.targetType = referencedType;
         }
         Column referenceColumn = new Column(prop);
@@ -314,15 +267,14 @@ public class ManualTypeBuilder {
         DDLUtils.DefaultRelation foreignKey = new DDLUtils.DefaultRelation();
         foreignKey.action = fk.action;
         referenceColumn.columnDef.foreignKey = foreignKey;
-        referenceColumn.addAnnotation(referenceColumn.columnDef);
 
         prop.declaringType = type;
         prop.isAssociation = true;
         prop.associationAnnotation = new DDLUtils.DefaultManyToOne();
         prop.id = PropId.byName(prop.name);
 
-        type.props.put(prop.name, prop);
         type.isAssignableFrom = true;
+        other.add(referenceColumn);
 
         return this;
     }
@@ -338,7 +290,45 @@ public class ManualTypeBuilder {
      * @return immutable-type
      */
     public ImmutableType build() {
+        _assert(!id.isEmpty(), "`id` should not be empty");
         _assert(isNotBlank(type.tableName), "`type.tableName` should not be blank");
+
+        ManualImmutablePropImpl idProp;
+        if (id.size() == 1) {
+            Column idColumn = id.get(0);
+            idProp = idColumn.prop;
+            _assert(isNotBlank(idColumn.prop.name), "`prop.name` should not be blank");
+            _assert(idColumn.prop.returnClass != null, "`prop.returnClass` should not be null");
+        } else {
+            idProp = new ManualImmutablePropImpl();
+            idProp.name = "id";
+            idProp.isEmbedded = true;
+            ManualImmutableTypeImpl embeddedIdType = new ManualImmutableTypeImpl();
+            initType(embeddedIdType);
+            embeddedIdType.immutableAnnotation = EMBEDDABLE;
+            idProp.targetType = embeddedIdType;
+            for (Column column : id) {
+                _assert(isNotBlank(column.prop.name), "`prop.name` should not be blank");
+                _assert(column.prop.returnClass != null, "`prop.returnClass` should not be null");
+                embeddedIdType.selectableProps.put(column.prop.name, column.prop);
+                column.prop.declaringType = embeddedIdType;
+            }
+        }
+
+        idProp.isId = true;
+        idProp.declaringType = type;
+        type.idProp = idProp;
+        type.props.put(idProp.name, idProp);
+        type.allTypes = Collections.singleton(type);
+        type.isEntity = true;
+        type.immutableAnnotation = ENTITY;
+        type.draftFactory = (draftContext, o) -> new ManualDraftSpi(type, draftContext, o);
+
+        for (Column column : this.other) {
+            type.props.put(column.prop.name, column.prop);
+            column.prop.declaringType = type;
+        }
+
         return type;
     }
 
@@ -348,12 +338,23 @@ public class ManualTypeBuilder {
     public static class Column {
         private final ManualImmutablePropImpl prop;
         private final DDLUtils.DefaultColumnDef columnDef = new DDLUtils.DefaultColumnDef();
+        private boolean primaryKey = false;
 
         private Column(ManualImmutablePropImpl prop) {
             this.prop = prop;
             prop.isColumnDefinition = true;
             prop.hasStorage = true;
             prop.dependencies = Collections.emptyList();
+            this.addAnnotation(columnDef);
+        }
+
+        public Column primaryKey() {
+            this.primaryKey = true;
+            return this;
+        }
+
+        public Column autoIncrement() {
+            return addAnnotation(new DDLUtils.DefaultGeneratedValue());
         }
 
         /**
@@ -548,9 +549,9 @@ public class ManualTypeBuilder {
         /**
          * Set referenced type, useful when the type is a pre-constructed.
          *
-         * @see #id(Consumer) either using this or using id(Consumer)
          * @param type referenced table type
          * @return the current instance
+         * @see #id(Consumer) either using this or using id(Consumer)
          */
         public FK type(ImmutableType type) {
             this.referenceType = type;
@@ -561,9 +562,9 @@ public class ManualTypeBuilder {
          * Configure the referenced table id column.
          * Auto build a single column type for generation.
          *
-         * @see #type(ImmutableType) either using this or using type(ImmutableType)
          * @param c id column configurer
          * @return the current instance
+         * @see #type(ImmutableType) either using this or using type(ImmutableType)
          */
         public FK id(Consumer<Column> c) {
             this.idConsumer = c;
