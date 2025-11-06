@@ -1,3 +1,5 @@
+import groovy.xml.XmlParser
+
 def libraries = subprojects.findAll {
     it.buildFile.exists()
 }
@@ -13,4 +15,29 @@ tasks.register('deployAll') {
     dependsOn ':jimmer-manual:publishAllPublicationsToMavenCentralRepository'
     dependsOn ':jimmer-dml:publishAllPublicationsToMavenCentralRepository'
     dependsOn ':jimmer-ddl:publishAllPublicationsToMavenCentralRepository'
+}
+
+tasks.register('deployAllIfNotExists') {
+    group 'deploy'
+
+    def modules = [
+            project(':jimmer-manual'),
+            project(':jimmer-dml'),
+            project(':jimmer-ddl')
+    ]
+
+    modules.each {
+        println "module: ${it.name}, current: ${it.version}, latest: ${getLatestVersion(it.name)}"
+        if (it.version != getLatestVersion(it.name)) {
+            dependsOn ":${it.name}:publishAllPublicationsToMavenCentralRepository"
+        }
+    }
+}
+
+String getLatestVersion(String artifactId) {
+    def url = "https://repo1.maven.org/maven2/io/github/honhimw/${artifactId}/maven-metadata.xml"
+    def response = uri(url).toURL().openStream().withCloseable { stream -> return stream.bytes }
+    def xmlContent = new XmlParser().parseText(new String(response, 'UTF-8'))
+    def latestVersion = xmlContent?.versioning?.latest?.text()
+    return latestVersion
 }
