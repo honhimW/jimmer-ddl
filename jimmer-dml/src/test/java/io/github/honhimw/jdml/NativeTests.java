@@ -2,13 +2,9 @@ package io.github.honhimw.jdml;
 
 import io.github.honhimw.jddl.DDLAuto;
 import io.github.honhimw.jddl.DDLAutoRunner;
-import io.github.honhimw.jddl.manual.ManualTypeBuilder;
-import io.github.honhimw.jman.ManualImmutableSpi;
 import io.github.honhimw.test.AbstractH2;
 import io.github.honhimw.test.model.*;
 import org.babyfish.jimmer.ImmutableObjects;
-import org.babyfish.jimmer.meta.ImmutableType;
-import org.babyfish.jimmer.sql.JSqlClient;
 import org.babyfish.jimmer.sql.ast.mutation.SaveMode;
 import org.babyfish.jimmer.sql.ast.mutation.SimpleSaveResult;
 import org.babyfish.jimmer.sql.ast.query.MutableRootQuery;

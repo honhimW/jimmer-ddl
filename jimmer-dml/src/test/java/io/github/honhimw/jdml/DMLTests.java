@@ -2,7 +2,7 @@ package io.github.honhimw.jdml;
 
 import io.github.honhimw.jddl.DDLAuto;
 import io.github.honhimw.jddl.DDLAutoRunner;
-import io.github.honhimw.jddl.manual.ManualTypeBuilder;
+import io.github.honhimw.jddl.manual.TableBuilder;
 import io.github.honhimw.jman.ManualDraftSpi;
 import io.github.honhimw.jman.ManualImmutableSpi;
 import io.github.honhimw.test.AbstractH2;
@@ -38,11 +38,11 @@ public class DMLTests extends AbstractH2 {
         JSqlClient.Builder builder = JSqlClient.newBuilder();
         applyBuilder(builder);
         JSqlClientImplementor sqlClient = DynJSqlClientImpl.from((JSqlClientImplementor.Builder) builder);
-        ImmutableType referred = ManualTypeBuilder.of("REFERRED_TABLE")
+        ImmutableType referred = TableBuilder.of("REFERRED_TABLE")
             .addColumn(column -> column.name("id").type(UUID.class).primaryKey())
             .addColumn(column -> column.name("name").type(String.class))
             .build();
-        ImmutableType main = ManualTypeBuilder.of("MAIN_TABLE")
+        ImmutableType main = TableBuilder.of("MAIN_TABLE")
             .addColumn(column -> column.name("id").type(Integer.TYPE).primaryKey().autoIncrement())
 //            .u32("id").tableName("MAIN_TABLE")
             .addColumn(column -> column.name("name").type(String.class))
@@ -52,7 +52,7 @@ public class DMLTests extends AbstractH2 {
                 .self(column -> column.nullable(true))
             )
             .build();
-        ImmutableType compositeId = ManualTypeBuilder.of("COMPOSITE_TABLE")
+        ImmutableType compositeId = TableBuilder.of("COMPOSITE_TABLE")
             .addColumn(column -> column.name("id0").type(String.class).primaryKey())
             .addColumn(column -> column.name("id1").type(String.class).primaryKey())
             .addColumn(column -> column.name("name").type(String.class))
@@ -101,7 +101,7 @@ public class DMLTests extends AbstractH2 {
                 .where(join.get("id").eq(UUID.randomUUID()))
                 .where(join.get("name").eq("???"))
                 .select(tableProxy).fetchFirstOrNull();
-            System.out.println(o1);
+            Assertions.assertNull(o1);
 
         }
 

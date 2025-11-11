@@ -2,7 +2,6 @@ version = '0.1.2'
 description = 'dynamic dml generator for jimmer'
 
 dependencies {
-    api project(':jimmer-manual')
     compileOnly platform(libs.jimmer.bom)
 
     compileOnly 'org.babyfish.jimmer:jimmer-sql'
@@ -12,9 +11,6 @@ dependencies {
     testImplementation project(':jimmer-ddl')
     testImplementation project(':test')
     testImplementation libs.h2
-    testImplementation platform(libs.jimmer.bom)
-    testAnnotationProcessor platform(libs.jimmer.bom)
-    testImplementation 'org.babyfish.jimmer:jimmer-sql'
     testImplementation libs.slf4j.api
     testImplementation libs.jspecify
     testImplementation libs.hikari
@@ -26,6 +22,7 @@ dependencies {
     testRuntimeOnly libs.sqlite
     testRuntimeOnly libs.logback.classic
 
+    testAnnotationProcessor platform(libs.jimmer.bom)
     testAnnotationProcessor 'org.babyfish.jimmer:jimmer-apt'
 
     testImplementation platform('org.testcontainers:testcontainers-bom:2.0.1')

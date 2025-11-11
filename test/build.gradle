@@ -1,9 +1,9 @@
 version = '0.0.1'
 
 dependencies {
-    compileOnly platform(libs.jimmer.bom)
+    api platform(libs.jimmer.bom)
 
-    compileOnly 'org.babyfish.jimmer:jimmer-sql'
+    api 'org.babyfish.jimmer:jimmer-sql'
 
     implementation libs.hikari
 
