@@ -14,12 +14,11 @@ void prepareSchemas() {
     JSqlClient.Builder builder = JSqlClient.newBuilder();
     applyBuilder(builder);
     JSqlClientImplementor sqlClient = DynJSqlClientImpl.from((JSqlClientImplementor.Builder) builder);
-    ImmutableType referred = ManualTypeBuilder
-        .of(column -> column.name("id").type(UUID.class))
-        .tableName("REFERRED_TABLE")
+    ImmutableType referred = TableBuilder.of("REFERRED_TABLE")
+        .addColumn(column -> column.name("id").type(UUID.class).primaryKey())
         .addColumn(column -> column.name("name").type(String.class))
         .build();
-    ImmutableType main = ManualTypeBuilder.of("MAIN_TABLE")
+    ImmutableType main = TableBuilder.of("MAIN_TABLE")
         .addColumn(column -> column.name("id").type(Integer.TYPE).primaryKey().autoIncrement())
         .addColumn(column -> column.name("name").type(String.class))
         .addRelation(fk -> fk.type(referred).propName("ref")
