@@ -271,6 +271,16 @@ public interface DDLDialect extends Dialect {
         return "alter table";
     }
 
+    default String getAlterTableString(String tableName) {
+        final StringBuilder sb = new StringBuilder(getAlterTableString());
+        sb.append(' ');
+        if (supportsIfExistsAfterAlterTable()) {
+            sb.append("if exists ");
+        }
+        sb.append(tableName);
+        return sb.toString();
+    }
+
     default String getAddColumnString() {
         return "add column";
     }

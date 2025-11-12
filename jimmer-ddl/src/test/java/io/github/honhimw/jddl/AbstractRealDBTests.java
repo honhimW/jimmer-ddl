@@ -18,6 +18,8 @@ import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 import org.babyfish.jimmer.sql.runtime.SqlFormatter;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.sql.DataSource;
 import java.sql.DatabaseMetaData;
@@ -36,6 +38,8 @@ import java.util.stream.Collectors;
  */
 
 public abstract class AbstractRealDBTests extends AbstractDDLTest {
+
+    private static final Logger log = LoggerFactory.getLogger(AbstractRealDBTests.class);
 
     @Test
     public void run() throws Exception {
@@ -103,26 +107,24 @@ public abstract class AbstractRealDBTests extends AbstractDDLTest {
         List<Table<?>> tables = new ArrayList<>();
         tables.add(Modify0Table.$);
         List<ImmutableType> types = tables.stream().map(TableTypeProvider::getImmutableType).collect(Collectors.toList());
-        DDLAutoRunner ddlAutoRunner = new DDLAutoRunner(sqlClient, DDLAuto.CREATE_DROP, types);
-        Assertions.assertDoesNotThrow(ddlAutoRunner::create);
-
-        DDLDialect ddlDialect = DDLDialect.of(dialect(), DatabaseVersion.LATEST);
-        String tableName = Modify0Table.$.getImmutableType().getTableName(sqlClient.getMetadataStrategy());
-        ImmutableProp lastName = Modify0Table.NAME0.unwrap();
-        ColumnModifier columnModifier = ColumnModifier.of(ddlDialect, tableName, DDLUtils.getName(lastName, sqlClient.getMetadataStrategy()));
-        List<String> alter = columnModifier.alter(new ColumnResolver(sqlClient, ddlDialect, Modify1Table.NAME1.unwrap()));
-        Assertions.assertDoesNotThrow(() -> sqlClient.getConnectionManager().execute(connection -> {
-            for (String s : alter) {
-                System.out.println(s);
-                try (PreparedStatement preparedStatement = connection.prepareStatement(s)) {
-                    preparedStatement.execute();
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-            return null;
-        }));
-        Assertions.assertDoesNotThrow(ddlAutoRunner::drop);
+        try (DDLAutoRunner ddlAutoRunner = new DDLAutoRunner(sqlClient, DDLAuto.CREATE_DROP, types)) {
+            ddlAutoRunner.create();
+            DDLDialect ddlDialect = DDLDialect.of(dialect(), DatabaseVersion.LATEST);
+            String tableName = Modify0Table.$.getImmutableType().getTableName(sqlClient.getMetadataStrategy());
+            ImmutableProp name0 = Modify0Table.NAME0.unwrap();
+            ColumnModifier columnModifier = ColumnModifier.of(ddlDialect, tableName, DDLUtils.getName(name0, sqlClient.getMetadataStrategy()));
+            List<String> alter = columnModifier.alter(new ColumnResolver(sqlClient, ddlDialect, Modify1Table.NAME1.unwrap()));
+            ddlAutoRunner.execute(alter);
+            Assertions.assertThrows(IllegalStateException.class, () -> {
+                String drop = columnModifier.drop();
+                ddlAutoRunner.execute(Collections.singletonList(drop));
+            });
+            ColumnModifier dropModifier = ColumnModifier.of(ddlDialect, tableName, DDLUtils.getName(Modify1Table.NAME1.unwrap(), sqlClient.getMetadataStrategy()));
+            Assertions.assertDoesNotThrow(() -> {
+                String drop = dropModifier.drop();
+                ddlAutoRunner.execute(Collections.singletonList(drop));
+            });
+        }
     }
 
     @Test

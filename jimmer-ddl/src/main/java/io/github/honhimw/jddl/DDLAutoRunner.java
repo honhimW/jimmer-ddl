@@ -114,18 +114,7 @@ public class DDLAutoRunner implements AutoCloseable {
         List<ImmutableType> sortedTypes = DDLUtils.sortByDependent(client.getMetadataStrategy(), types);
         List<String> sqlCreateStrings = schemaCreator.getSqlCreateStrings(sortedTypes);
         if (!sqlCreateStrings.isEmpty()) {
-            client.getConnectionManager().execute(connection -> {
-                try {
-                    for (String sqlCreateString : sqlCreateStrings) {
-                        log(sqlCreateString);
-                        PreparedStatement preparedStatement = connection.prepareStatement(sqlCreateString);
-                        preparedStatement.execute();
-                    }
-                } catch (Exception e) {
-                    throw new IllegalStateException("schema creation error.", e);
-                }
-                return null;
-            });
+            execute(sqlCreateStrings);
         }
     }
 
@@ -151,18 +140,7 @@ public class DDLAutoRunner implements AutoCloseable {
             }
         }
         if (!sqlAddColumnStrings.isEmpty()) {
-            client.getConnectionManager().execute(connection -> {
-                try {
-                    for (String sqlAddColumnString : sqlAddColumnStrings) {
-                        log(sqlAddColumnString);
-                        PreparedStatement preparedStatement = connection.prepareStatement(sqlAddColumnString);
-                        preparedStatement.execute();
-                    }
-                } catch (Exception e) {
-                    throw new IllegalStateException("schema update error.", e);
-                }
-                return null;
-            });
+            execute(sqlAddColumnStrings);
         }
     }
 
@@ -171,19 +149,24 @@ public class DDLAutoRunner implements AutoCloseable {
         Collections.reverse(sortedTypes);
         List<String> sqlDropStrings = schemaCreator.getSqlDropStrings(sortedTypes);
         if (!sqlDropStrings.isEmpty()) {
-            client.getConnectionManager().execute(connection -> {
-                try {
-                    for (String sqlDropString : sqlDropStrings) {
-                        log(sqlDropString);
-                        PreparedStatement preparedStatement = connection.prepareStatement(sqlDropString);
-                        preparedStatement.execute();
-                    }
-                } catch (Exception e) {
-                    throw new IllegalStateException("schema deletion error.", e);
-                }
-                return null;
-            });
+            execute(sqlDropStrings);
         }
+    }
+
+    public void execute(List<String> statements) {
+        client.getConnectionManager().execute(connection -> {
+            for (String statement : statements) {
+                log(statement);
+                try (
+                    @SuppressWarnings("SqlSourceToSinkFlow")
+                    PreparedStatement preparedStatement = connection.prepareStatement(statement)) {
+                    preparedStatement.execute();
+                } catch (Exception e) {
+                    throw new IllegalStateException("statement execution error. SQL: " + statement, e);
+                }
+            }
+            return null;
+        });
     }
 
     private void log(String message, Object... args) {

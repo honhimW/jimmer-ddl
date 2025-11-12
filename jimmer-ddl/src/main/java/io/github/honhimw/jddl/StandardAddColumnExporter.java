@@ -40,11 +40,11 @@ public class StandardAddColumnExporter implements Exporter<ImmutableProp> {
         ColumnResolver columnResolver = new ColumnResolver(client, dialect, prop);
 
         StringBuilder buf = new StringBuilder();
+        String tableName = prop.getDeclaringType().getTableName(client.getMetadataStrategy());
         buf
-            .append(dialect.getAlterTableString()).append(' ')
-            .append(prop.getDeclaringType().getTableName(client.getMetadataStrategy())).append(' ')
+            .append(dialect.getAlterTableString(dialect.quote(tableName))).append(' ')
             .append(dialect.getAddColumnString()).append(' ')
-            .append(DDLUtils.getName(prop, client.getMetadataStrategy())).append(' ')
+            .append(dialect.quote(DDLUtils.getName(prop, client.getMetadataStrategy()))).append(' ')
         ;
 
         String columnDefinition = columnResolver.columnDefinition();
@@ -72,11 +72,11 @@ public class StandardAddColumnExporter implements Exporter<ImmutableProp> {
     @Override
     public List<String> getSqlDropStrings(ImmutableProp prop) {
         StringBuilder buf = new StringBuilder();
+        String tableName = prop.getDeclaringType().getTableName(client.getMetadataStrategy());
         buf
-            .append(dialect.getAlterTableString()).append(' ')
-            .append(prop.getDeclaringType().getTableName(client.getMetadataStrategy()))
+            .append(dialect.getAlterTableString(dialect.quote(tableName)))
             .append(" drop column ")
-            .append(DDLUtils.getName(prop, client.getMetadataStrategy()));
+            .append(dialect.quote(DDLUtils.getName(prop, client.getMetadataStrategy())));
         return Collections.singletonList(buf.toString());
     }
 

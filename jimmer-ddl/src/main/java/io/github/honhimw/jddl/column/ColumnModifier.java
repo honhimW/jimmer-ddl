@@ -115,11 +115,17 @@ public class ColumnModifier {
         return buf.toString();
     }
 
+    public String drop() {
+        StringBuilder buf = new StringBuilder();
+        appendAlterTableString(buf)
+            .append(" drop column ")
+            .append(dialect.quote(column));
+        return buf.toString();
+    }
+
     protected StringBuilder appendAlterTableString(StringBuilder buf) {
         return buf
-            .append(dialect.getAlterTableString()).append(' ')
-            .append(dialect.quote(table))
-            ;
+            .append(dialect.getAlterTableString(dialect.quote(table)));
     }
 
     protected String nullableString(boolean nullable) {

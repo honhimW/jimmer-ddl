@@ -37,11 +37,7 @@ public class StandardForeignKeyExporter implements Exporter<ForeignKey> {
         String sourceTableName = exportable.table.getTableName(client.getMetadataStrategy());
         String targetTableName = exportable.referencedTable.getTableName(client.getMetadataStrategy());
 
-        bufferContext.buf.append(dialect.getAlterTableString()).append(' ');
-        if (dialect.supportsIfExistsAfterAlterTable()) {
-            bufferContext.buf.append("if exists ");
-        }
-        bufferContext.buf.append(sourceTableName);
+        bufferContext.buf.append(dialect.getAlterTableString(dialect.quote(sourceTableName)));
 
         String joinColumnName = DDLUtils.getName(exportable.joinColumn, client.getMetadataStrategy());
         String foreignKeyName = getForeignKeyName(bufferContext, exportable);
@@ -75,20 +71,14 @@ public class StandardForeignKeyExporter implements Exporter<ForeignKey> {
         if (!dialect.hasAlterTable()) {
             return Collections.emptyList();
         }
+        String tableName = exportable.table.getTableName(client.getMetadataStrategy());
         BufferContext bufferContext = new BufferContext(this.client, exportable.table);
-        bufferContext.buf.append(dialect.getAlterTableString()).append(' ');
-        if (dialect.supportsIfExistsAfterAlterTable()) {
-            bufferContext.buf.append("if exists ");
-        }
-        bufferContext.buf
-            .append(exportable.table.getTableName(client.getMetadataStrategy()))
-            .append(' ')
-            .append(dialect.getDropForeignKeyString())
-            .append(' ');
+        bufferContext.buf.append(dialect.getAlterTableString(dialect.quote(tableName))).append(' ')
+            .append(dialect.getDropForeignKeyString()).append(' ');
         if (dialect.supportsIfExistsBeforeConstraintName()) {
             bufferContext.buf.append("if exists ");
         }
-        bufferContext.buf.append(dialect.quote(getForeignKeyName(bufferContext, exportable)));
+        bufferContext.buf.append(getForeignKeyName(bufferContext, exportable));
         return Collections.singletonList(bufferContext.buf.toString());
     }
 
