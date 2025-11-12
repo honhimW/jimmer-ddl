@@ -6,14 +6,13 @@ import io.github.honhimw.jman.ManualImmutablePropImpl;
 import io.github.honhimw.jman.ManualPropBuilder;
 
 import java.lang.annotation.Annotation;
-import java.util.Objects;
 
 /**
  * Property configuration
  */
 public class Column extends ManualPropBuilder<Column> {
     protected final DDLUtils.DefaultColumnDef columnDef = new DDLUtils.DefaultColumnDef();
-    protected boolean primaryKey = false;
+    protected final DDLUtils.DefaultColumn column = new DDLUtils.DefaultColumn();
     private Annotation generatedValue = null;
 
     public Column() {
@@ -23,14 +22,31 @@ public class Column extends ManualPropBuilder<Column> {
     public Column(ManualImmutablePropImpl prop) {
         super(prop);
         this.addAnnotation(columnDef);
+        this.addAnnotation(column);
     }
 
+    /**
+     * auto-increment on id
+     *
+     * @return the current instance
+     */
     public Column autoIncrement() {
         super.autoIncrement();
         if (generatedValue == null) {
             generatedValue = new DDLUtils.DefaultGeneratedValue();
             addAnnotation(generatedValue);
         }
+        return self();
+    }
+
+    /**
+     * set the column name without sneaking
+     *
+     * @param columnName the column name
+     * @return the current instance
+     */
+    public Column columnName(String columnName) {
+        column.name = columnName;
         return self();
     }
 
@@ -134,9 +150,7 @@ public class Column extends ManualPropBuilder<Column> {
     }
 
     public ManualImmutablePropImpl build() {
-        prop.annotations = annotations.toArray(new Annotation[0]);
-        Objects.requireNonNull(prop.name, "`name` must not be null");
-        Objects.requireNonNull(prop.returnClass, "`type` must not be null");
+        super.build();
         return prop;
     }
 

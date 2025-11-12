@@ -5,10 +5,7 @@ import io.github.honhimw.jddl.dialect.DDLDialect;
 import org.babyfish.jimmer.meta.EmbeddedLevel;
 import org.babyfish.jimmer.meta.ImmutableProp;
 import org.babyfish.jimmer.meta.ImmutableType;
-import org.babyfish.jimmer.sql.EnumType;
-import org.babyfish.jimmer.sql.GeneratedValue;
-import org.babyfish.jimmer.sql.GenerationType;
-import org.babyfish.jimmer.sql.ManyToOne;
+import org.babyfish.jimmer.sql.*;
 import org.babyfish.jimmer.sql.meta.MetadataStrategy;
 import org.babyfish.jimmer.sql.meta.SingleColumn;
 import org.babyfish.jimmer.sql.meta.Storage;
@@ -472,15 +469,29 @@ public class DDLUtils {
         }
     }
 
-    public static class DefaultManyToOne implements ManyToOne {
+    public static class DefaultColumn implements Column {
+        public String name = "";
+        public String type = "";
+        public String sqlElementType = "";
+
         @Override
-        public boolean inputNotNull() {
-            return false;
+        public String name() {
+            return name;
+        }
+
+        @Override
+        public String sqlType() {
+            return type;
+        }
+
+        @Override
+        public String sqlElementType() {
+            return sqlElementType;
         }
 
         @Override
         public Class<? extends Annotation> annotationType() {
-            return ManyToOne.class;
+            return Column.class;
         }
     }
 

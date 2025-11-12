@@ -47,6 +47,7 @@ public class DDLDesignTests extends AbstractH2 {
                 .comment("comment on column")
             )
             .addColumn("uuidValue", UUID.class)
+            .addColumn(column -> column.name("uuid2").type(UUID.class).columnName("uuid_value_2"))
             .addRelation(fk -> fk
                 .propName("table3")
                 .action(OnDeleteAction.CASCADE)
