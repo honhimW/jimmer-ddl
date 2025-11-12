@@ -1,7 +1,8 @@
 version = '0.0.1'
 
 dependencies {
-    api platform(libs.jimmer.bom)
+    using platform(libs.jimmer.bom.get())
+    using platform(libs.testcontainers.get())
 
     api 'org.babyfish.jimmer:jimmer-sql'
 
@@ -15,16 +16,7 @@ dependencies {
     implementation libs.sqlite
     implementation libs.logback.classic
 
-    implementation platform('org.testcontainers:testcontainers-bom:2.0.1')
-    implementation 'org.testcontainers:testcontainers'
-    implementation 'org.testcontainers:testcontainers-junit-jupiter'
-    implementation 'org.testcontainers:testcontainers-postgresql'
-    implementation 'org.testcontainers:testcontainers-mysql'
-    implementation 'org.testcontainers:testcontainers-mariadb'
-    implementation 'org.testcontainers:testcontainers-mssqlserver'
-    implementation 'org.testcontainers:testcontainers-oracle-free'
-    implementation 'org.testcontainers:testcontainers-tidb'
+    implementation 'org.testcontainers:testcontainers-jdbc'
 
-    annotationProcessor platform(libs.jimmer.bom)
     annotationProcessor 'org.babyfish.jimmer:jimmer-apt'
 }

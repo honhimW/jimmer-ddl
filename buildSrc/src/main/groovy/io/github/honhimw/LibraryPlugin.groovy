@@ -5,7 +5,10 @@ import com.vanniktech.maven.publish.MavenPublishPlugin
 import org.gradle.api.JavaVersion
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.VersionCatalogsExtension
+import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.plugins.JavaLibraryPlugin
+import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.testing.Test
@@ -14,6 +17,7 @@ import org.gradle.plugins.signing.SigningPlugin
 
 import static java.nio.charset.StandardCharsets.UTF_8
 
+@SuppressWarnings('unused')
 class LibraryPlugin implements Plugin<Project> {
 
     @Override
@@ -35,7 +39,7 @@ class LibraryPlugin implements Plugin<Project> {
         }
     }
 
-    void java(Project project) {
+    static void java(Project project) {
         project.extensions.configure(JavaPluginExtension) { java ->
             java.sourceCompatibility = JavaVersion.VERSION_1_8
             java.targetCompatibility = JavaVersion.VERSION_1_8
@@ -49,21 +53,38 @@ class LibraryPlugin implements Plugin<Project> {
         project.tasks.withType(Jar).configureEach { jar ->
             jar.enabled = true
         }
+        def using = project.configurations.create('using')
+        using.setCanBeResolved false
+        using.setCanBeConsumed false
+        using.setCanBeDeclared true
+        project.plugins.withType(JavaPlugin).configureEach {
+            project.extensions.getByType(JavaPluginExtension).sourceSets.configureEach { ss ->
+                project.configurations.named(ss.compileClasspathConfigurationName).configure { it.extendsFrom using }
+                project.configurations.named(ss.runtimeClasspathConfigurationName).configure { it.extendsFrom using }
+                project.configurations.named(ss.annotationProcessorConfigurationName).configure { it.extendsFrom using }
+                project.configurations.named(ss.compileOnlyConfigurationName).configure {
+                    it.extendsFrom project.configurations.named(ss.annotationProcessorConfigurationName).get()
+                }
+            }
+        }
     }
 
-    void dependencies(Project project) {
+    static void dependencies(Project project) {
         project.repositories {
             project.repositories.mavenCentral()
         }
-        project.dependencies {
-            testImplementation platform(project.libs.junit.bom)
-            testImplementation 'org.junit.jupiter:junit-jupiter'
-            testImplementation 'org.junit.platform:junit-platform-engine'
-            testImplementation 'org.junit.platform:junit-platform-launcher'
+        project.dependencies { DependencyHandler dep ->
+            def libs = project.rootProject.extensions.getByType(VersionCatalogsExtension).named('libs')
+            libs.findLibrary('junit-bom').ifPresent {
+                dep.add 'testImplementation', dep.platform(it)
+                dep.add 'testImplementation', 'org.junit.jupiter:junit-jupiter'
+                dep.add 'testImplementation', 'org.junit.platform:junit-platform-engine'
+                dep.add 'testImplementation', 'org.junit.platform:junit-platform-launcher'
+            }
         }
     }
 
-    void test(Project project) {
+    static void test(Project project) {
         project.tasks.withType(Test).configureEach { test ->
             test.useJUnitPlatform()
             test.testLogging {
@@ -72,7 +93,7 @@ class LibraryPlugin implements Plugin<Project> {
         }
     }
 
-    void publish(Project project) {
+    static void publish(Project project) {
         project.afterEvaluate {
             project.extensions.configure(MavenPublishBaseExtension) {
                 it.publishToMavenCentral false
