@@ -40,8 +40,4 @@ public class SqlServerTests extends AbstractRealDBTests {
         return Optional.of(mssql);
     }
 
-    @Override
-    public void columnModifier() {
-        // do nothing
-    }
 }

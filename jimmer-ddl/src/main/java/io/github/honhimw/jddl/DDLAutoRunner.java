@@ -153,14 +153,13 @@ public class DDLAutoRunner implements AutoCloseable {
         }
     }
 
+    @SuppressWarnings("SqlSourceToSinkFlow")
     public void execute(List<String> statements) {
         client.getConnectionManager().execute(connection -> {
             for (String statement : statements) {
                 log(statement);
-                try (
-                    @SuppressWarnings("SqlSourceToSinkFlow")
-                    PreparedStatement preparedStatement = connection.prepareStatement(statement)) {
-                    preparedStatement.execute();
+                try {
+                    connection.createStatement().execute(statement);
                 } catch (Exception e) {
                     throw new IllegalStateException("statement execution error. SQL: " + statement, e);
                 }

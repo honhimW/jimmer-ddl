@@ -15,7 +15,7 @@ public interface Modify1 {
     @Id
     String id();
 
-    @ColumnDef(length = 50, comment = "name1 comment")
+    @ColumnDef(length = 50, comment = "name1 comment", nullable = ColumnDef.Nullable.TRUE)
     String name1();
 
 }
