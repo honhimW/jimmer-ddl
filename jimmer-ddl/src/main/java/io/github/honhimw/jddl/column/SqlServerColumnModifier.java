@@ -35,38 +35,10 @@ public class SqlServerColumnModifier extends ColumnModifier {
             .append(resolver.nullable() ? "null" : "not null")
         ;
         sqls.add(buf.toString());
+        SqlServerColumnModifier next = new SqlServerColumnModifier(dialect, table, column);
         // drop default constraint
-        buf = new StringBuilder();
-        buf.append("DECLARE @table NVARCHAR(128) = '").append(table).append("'; ");
-        buf.append("DECLARE @column NVARCHAR(128) = '").append(column).append("'; ");
-        buf.append("DECLARE @constraint NVARCHAR(128); ");
-        buf.append("DECLARE @sql NVARCHAR(MAX); ");
-        buf
-            .append("SELECT @constraint = dc.name ")
-            .append("FROM sys.default_constraints dc ")
-            .append("JOIN sys.columns c ON dc.parent_object_id = c.object_id AND dc.parent_column_id = c.column_id ")
-            .append("WHERE OBJECT_NAME(dc.parent_object_id) = @table ")
-            .append("AND c.name = @column; ");
-        buf
-            .append("IF @constraint IS NOT NULL ")
-            .append("BEGIN ")
-            .append("SET @sql = 'ALTER TABLE [' + @table + '] DROP CONSTRAINT [' + @constraint + ']'; ")
-            .append("EXEC sp_executesql @sql; ")
-            .append("END;")
-        ;
-        sqls.add(buf.toString());
-        if (resolver.defaultValue() != null) {
-            buf = new StringBuilder();
-            appendAlterTableString(buf)
-                .append(" add constraint ")
-                .append("DF_").append(table).append("_").append(column)
-                .append(" default ")
-                .append(resolver.defaultValue())
-                .append(" for ")
-                .append(dialect.quote(column))
-            ;
-            sqls.add(buf.toString());
-        }
+        sqls.add(next.defaultValue(null));
+        sqls.add(next.defaultValue(resolver.defaultValue()));
         return sqls;
     }
 
@@ -95,8 +67,25 @@ public class SqlServerColumnModifier extends ColumnModifier {
 
     @Override
     public String defaultValue(@Nullable Object defaultValue) {
-        if (defaultValue != null) {
-            StringBuilder buf = new StringBuilder();
+        StringBuilder buf = new StringBuilder();
+        if (defaultValue == null) {
+            buf.append("DECLARE @table NVARCHAR(128) = '").append(table).append("'; ");
+            buf.append("DECLARE @column NVARCHAR(128) = '").append(column).append("'; ");
+            buf.append("DECLARE @constraint NVARCHAR(128); ");
+            buf.append("DECLARE @sql NVARCHAR(MAX); ");
+            buf
+                .append("SELECT @constraint = dc.name ")
+                .append("FROM sys.default_constraints dc ")
+                .append("JOIN sys.columns c ON dc.parent_object_id = c.object_id AND dc.parent_column_id = c.column_id ")
+                .append("WHERE OBJECT_NAME(dc.parent_object_id) = @table ")
+                .append("AND c.name = @column; ");
+            buf
+                .append("IF @constraint IS NOT NULL ")
+                .append("BEGIN ")
+                .append("SET @sql = 'ALTER TABLE [' + @table + '] DROP CONSTRAINT [' + @constraint + ']'; ")
+                .append("EXEC sp_executesql @sql; ")
+                .append("END;");
+        } else {
             appendAlterTableString(buf)
                 .append(" add constraint ")
                 .append("DF_").append(table).append("_").append(column)
@@ -105,9 +94,8 @@ public class SqlServerColumnModifier extends ColumnModifier {
                 .append(" for ")
                 .append(dialect.quote(column))
             ;
-            return buf.toString();
         }
-        return "";
+        return buf.toString();
     }
 
     @Override
