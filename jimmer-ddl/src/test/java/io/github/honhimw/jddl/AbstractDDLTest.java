@@ -31,8 +31,8 @@ public abstract class AbstractDDLTest extends AbstractRealDB {
 
     protected void assertColumnTypes(ImmutableType immutableType, Map<String, Map<String, Object>> collect) {
         Map<String, ImmutableProp> allScalarProps = DDLUtils.allDefinitionProps(immutableType);
-        Map<String, ImmutableProp> propMap = allScalarProps.values().stream().collect(Collectors.toMap(prop -> DDLUtils.getName(prop, jSqlClientImplementor.getMetadataStrategy()), prop -> prop));
-        DDLDialect ddlDialect = DDLDialect.of(jSqlClientImplementor.getDialect(), null);
+        Map<String, ImmutableProp> propMap = allScalarProps.values().stream().collect(Collectors.toMap(prop -> DDLUtils.getName(prop, getSqlClient().getMetadataStrategy()), prop -> prop));
+        DDLDialect ddlDialect = DDLDialect.of(getSqlClient().getDialect());
         for (Map.Entry<String, Map<String, Object>> entry : collect.entrySet()) {
             String key = entry.getKey();
             Map<String, Object> value = entry.getValue();
@@ -75,7 +75,7 @@ public abstract class AbstractDDLTest extends AbstractRealDB {
     }
 
     int adjustJdbcType(int jdbcType) {
-        Dialect dialect = jSqlClientImplementor.getDialect();
+        Dialect dialect = getSqlClient().getDialect();
         if (dialect instanceof OracleDialect) {
             switch (jdbcType) {
                 case Types.BOOLEAN:

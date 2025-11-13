@@ -1,9 +1,8 @@
 package io.github.honhimw.jddl.dialect;
 
 import io.github.honhimw.jddl.DDLUtils;
-import io.github.honhimw.jddl.DatabaseVersion;
 import org.babyfish.jimmer.sql.EnumType;
-import org.babyfish.jimmer.sql.dialect.H2Dialect;
+import org.babyfish.jimmer.sql.dialect.SqlServerDialect;
 import org.jspecify.annotations.Nullable;
 
 import java.util.UUID;
@@ -17,11 +16,11 @@ import static java.sql.Types.*;
 public class SqlServerDDLDialect extends DefaultDDLDialect {
 
     public SqlServerDDLDialect() {
-        this(null);
+        this(DDLDialectContext.of(new SqlServerDialect()));
     }
 
-    public SqlServerDDLDialect(final DatabaseVersion version) {
-        super(new H2Dialect(), version);
+    public SqlServerDDLDialect(final DDLDialectContext ctx) {
+        super(ctx);
     }
 
     @Override

@@ -1,7 +1,6 @@
 package io.github.honhimw.jddl.dialect;
 
 import org.babyfish.jimmer.sql.EnumType;
-import io.github.honhimw.jddl.DatabaseVersion;
 import org.babyfish.jimmer.sql.dialect.H2Dialect;
 import org.jspecify.annotations.Nullable;
 
@@ -16,11 +15,11 @@ import static java.sql.Types.*;
 public class H2DDLDialect extends DefaultDDLDialect {
 
     public H2DDLDialect() {
-        this(null);
+        this(DDLDialectContext.of(new H2Dialect()));
     }
 
-    public H2DDLDialect(final DatabaseVersion version) {
-        super(new H2Dialect(), version);
+    public H2DDLDialect(final DDLDialectContext ctx) {
+        super(ctx);
     }
 
     @Override

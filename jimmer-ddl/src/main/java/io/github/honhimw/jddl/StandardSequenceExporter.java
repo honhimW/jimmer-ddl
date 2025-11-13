@@ -1,11 +1,11 @@
 package io.github.honhimw.jddl;
 
 import io.github.honhimw.jddl.dialect.DDLDialect;
+import io.github.honhimw.jddl.dialect.DDLDialectContext;
 import org.babyfish.jimmer.meta.ImmutableProp;
 import org.babyfish.jimmer.sql.GeneratedValue;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 
-import java.sql.DatabaseMetaData;
 import java.util.Collections;
 import java.util.List;
 
@@ -22,12 +22,16 @@ public class StandardSequenceExporter implements Exporter<ImmutableProp> {
     public StandardSequenceExporter(JSqlClientImplementor client) {
         this.client = client;
         DatabaseVersion databaseVersion = DDLUtils.getDatabaseVersion(client);
-        this.dialect = DDLDialect.of(client.getDialect(), databaseVersion);
+        this.dialect = DDLDialectContext.builder()
+            .dialect(client.getDialect())
+            .version(databaseVersion)
+            .build()
+            .select();
     }
 
-    public StandardSequenceExporter(JSqlClientImplementor client, DatabaseVersion version) {
+    public StandardSequenceExporter(JSqlClientImplementor client, DDLDialectContext ctx) {
         this.client = client;
-        this.dialect = DDLDialect.of(client.getDialect(), version);
+        this.dialect = ctx.select();
     }
 
     @Override

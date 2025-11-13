@@ -5,15 +5,11 @@ import io.github.honhimw.jddl.anno.ColumnDef;
 import io.github.honhimw.jman.ManualImmutablePropImpl;
 import io.github.honhimw.jman.ManualPropBuilder;
 
-import java.lang.annotation.Annotation;
-
 /**
  * Property configuration
  */
 public class Column extends ManualPropBuilder<Column> {
     protected final DDLUtils.DefaultColumnDef columnDef = new DDLUtils.DefaultColumnDef();
-    protected final DDLUtils.DefaultColumn column = new DDLUtils.DefaultColumn();
-    private Annotation generatedValue = null;
 
     public Column() {
         this(new ManualImmutablePropImpl());
@@ -23,31 +19,6 @@ public class Column extends ManualPropBuilder<Column> {
         super(prop);
         this.addAnnotation(columnDef);
         this.addAnnotation(column);
-    }
-
-    /**
-     * auto-increment on id
-     *
-     * @return the current instance
-     */
-    public Column autoIncrement() {
-        super.autoIncrement();
-        if (generatedValue == null) {
-            generatedValue = new DDLUtils.DefaultGeneratedValue();
-            addAnnotation(generatedValue);
-        }
-        return self();
-    }
-
-    /**
-     * set the column name without sneaking
-     *
-     * @param columnName the column name
-     * @return the current instance
-     */
-    public Column columnName(String columnName) {
-        column.name = columnName;
-        return self();
     }
 
     /**

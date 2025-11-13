@@ -1,7 +1,6 @@
 package io.github.honhimw.jddl.dialect;
 
 import io.github.honhimw.jddl.DDLUtils;
-import io.github.honhimw.jddl.DatabaseVersion;
 import org.babyfish.jimmer.sql.EnumType;
 import org.babyfish.jimmer.sql.ast.SqlTimeUnit;
 import org.babyfish.jimmer.sql.ast.impl.Ast;
@@ -26,31 +25,37 @@ import static java.sql.Types.*;
  * @author honhimW
  */
 
-public abstract class DefaultDDLDialect implements DDLDialect {
+public class DefaultDDLDialect implements DDLDialect {
 
     protected final Dialect dialect;
 
-    protected final DatabaseVersion version;
+    protected final DDLDialectContext ctx;
 
     protected DefaultDDLDialect(Dialect dialect) {
-        this(dialect, null);
+        this(DDLDialectContext.of(dialect));
     }
 
-    protected DefaultDDLDialect(Dialect dialect, final DatabaseVersion version) {
-        this.dialect = dialect;
-        this.version = version == null ? DatabaseVersion.LATEST : version;
+    protected DefaultDDLDialect(DDLDialectContext ctx) {
+        this.dialect = ctx.dialect;
+        this.ctx = ctx;
     }
 
     protected boolean isSameOrAfter(int major) {
-        return this.version.isSameOrAfter(major);
+        return this.ctx.version.isSameOrAfter(major);
     }
 
     protected boolean isSameOrAfter(int major, int minor) {
-        return this.version.isSameOrAfter(major, minor);
+        return this.ctx.version.isSameOrAfter(major, minor);
     }
 
     protected boolean isSameOrAfter(int... version) {
-        return this.version.isSameOrAfter(version);
+        return this.ctx.version.isSameOrAfter(version);
+    }
+
+
+    @Override
+    public boolean preferQuoted() {
+        return this.ctx.preferQuoted;
     }
 
     @Override

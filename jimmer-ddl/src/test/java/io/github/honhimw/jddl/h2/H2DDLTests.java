@@ -115,7 +115,7 @@ public class H2DDLTests extends AbstractDDLTest {
                 .setConnectionManager(connectionManager)
                 .setSqlFormatter(SqlFormatter.PRETTY)
             );
-            SchemaCreator schemaCreator = new SchemaCreator(sqlClient, DatabaseVersion.LATEST);
+            SchemaCreator schemaCreator = new SchemaCreator(sqlClient);
             schemaCreator.init();
             List<Table<?>> tables = new ArrayList<>();
             tables.add(Tables.AUTHOR_TABLE);

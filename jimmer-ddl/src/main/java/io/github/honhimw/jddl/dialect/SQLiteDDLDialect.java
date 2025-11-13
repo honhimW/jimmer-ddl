@@ -1,6 +1,5 @@
 package io.github.honhimw.jddl.dialect;
 
-import io.github.honhimw.jddl.DatabaseVersion;
 import org.babyfish.jimmer.sql.dialect.SQLiteDialect;
 
 import static java.sql.Types.*;
@@ -12,11 +11,11 @@ import static java.sql.Types.*;
 public class SQLiteDDLDialect extends DefaultDDLDialect {
 
     public SQLiteDDLDialect() {
-        this(null);
+        this(DDLDialectContext.of(new SQLiteDialect()));
     }
 
-    public SQLiteDDLDialect(final DatabaseVersion version) {
-        super(new SQLiteDialect(), version);
+    public SQLiteDDLDialect(final DDLDialectContext ctx) {
+        super(ctx);
     }
 
     @Override

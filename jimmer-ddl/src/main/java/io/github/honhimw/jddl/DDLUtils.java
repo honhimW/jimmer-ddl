@@ -298,37 +298,6 @@ public class DDLUtils {
         }
     }
 
-    public static class DefaultGeneratedValue implements GeneratedValue {
-        public GenerationType strategy = GenerationType.AUTO;
-        public Class<? extends UserIdGenerator<?>> generatorType = UserIdGenerator.None.class;
-        public String generatorRef = "";
-        public String sequenceName = "";
-        @Override
-        public GenerationType strategy() {
-            return strategy;
-        }
-
-        @Override
-        public Class<? extends UserIdGenerator<?>> generatorType() {
-            return generatorType;
-        }
-
-        @Override
-        public String generatorRef() {
-            return generatorRef;
-        }
-
-        @Override
-        public String sequenceName() {
-            return sequenceName;
-        }
-
-        @Override
-        public Class<? extends Annotation> annotationType() {
-            return GeneratedValue.class;
-        }
-    }
-
     public static class DefaultTableDef implements TableDef {
         public Unique[] uniques = new Unique[0];
         public Index[] indexes = new Index[0];
@@ -466,32 +435,6 @@ public class DDLUtils {
         @Override
         public Class<? extends Annotation> annotationType() {
             return Check.class;
-        }
-    }
-
-    public static class DefaultColumn implements Column {
-        public String name = "";
-        public String type = "";
-        public String sqlElementType = "";
-
-        @Override
-        public String name() {
-            return name;
-        }
-
-        @Override
-        public String sqlType() {
-            return type;
-        }
-
-        @Override
-        public String sqlElementType() {
-            return sqlElementType;
-        }
-
-        @Override
-        public Class<? extends Annotation> annotationType() {
-            return Column.class;
         }
     }
 

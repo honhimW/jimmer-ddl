@@ -1,6 +1,5 @@
 package io.github.honhimw.jddl.dialect;
 
-import io.github.honhimw.jddl.DatabaseVersion;
 import org.babyfish.jimmer.sql.dialect.TiDBDialect;
 
 /**
@@ -10,11 +9,11 @@ import org.babyfish.jimmer.sql.dialect.TiDBDialect;
 public class TiDBDDLDialect extends MySqlDDLDialect {
 
     public TiDBDDLDialect() {
-        this(null);
+        this(DDLDialectContext.of(new TiDBDialect()));
     }
 
-    public TiDBDDLDialect(final DatabaseVersion version) {
-        super(new TiDBDialect(), version);
+    public TiDBDDLDialect(final DDLDialectContext ctx) {
+        super(ctx);
     }
 
     @Override

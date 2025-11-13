@@ -2,6 +2,7 @@ package io.github.honhimw.jddl;
 
 import io.github.honhimw.jddl.anno.OnDeleteAction;
 import io.github.honhimw.jddl.dialect.DDLDialect;
+import io.github.honhimw.jddl.dialect.DDLDialectContext;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 
 import java.util.Collections;
@@ -20,12 +21,16 @@ public class StandardForeignKeyExporter implements Exporter<ForeignKey> {
     public StandardForeignKeyExporter(JSqlClientImplementor client) {
         this.client = client;
         DatabaseVersion databaseVersion = DDLUtils.getDatabaseVersion(client);
-        this.dialect = DDLDialect.of(client.getDialect(), databaseVersion);
+        this.dialect = DDLDialectContext.builder()
+            .dialect(client.getDialect())
+            .version(databaseVersion)
+            .build()
+            .select();
     }
 
-    public StandardForeignKeyExporter(JSqlClientImplementor client, DatabaseVersion version) {
+    public StandardForeignKeyExporter(JSqlClientImplementor client, DDLDialectContext ctx) {
         this.client = client;
-        this.dialect = DDLDialect.of(client.getDialect(), version);
+        this.dialect = ctx.select();
     }
 
     @Override

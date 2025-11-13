@@ -49,6 +49,11 @@ public class DDLDialectDelegate implements DDLDialect {
     }
 
     @Override
+    public boolean preferQuoted() {
+        return delegate.preferQuoted();
+    }
+
+    @Override
     public boolean hasDataTypeInIdentityColumn() {
         return delegate.hasDataTypeInIdentityColumn();
     }
@@ -502,5 +507,15 @@ public class DDLDialectDelegate implements DDLDialect {
     @Override
     public String sqlType(Class<?> elementType) {
         return delegate.sqlType(elementType);
+    }
+
+    @Override
+    public boolean supportsSequence() {
+        return delegate.supportsSequence();
+    }
+
+    @Override
+    public String getAlterTableString(String tableName) {
+        return delegate.getAlterTableString(tableName);
     }
 }

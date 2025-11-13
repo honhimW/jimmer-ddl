@@ -16,8 +16,9 @@ import java.util.function.Consumer;
 public class ManualPropBuilder<SELF extends ManualPropBuilder<SELF>> {
     protected final ManualImmutablePropImpl prop;
     protected final List<Annotation> annotations = new ArrayList<>();
+    protected Annotation generatedValue = null;
+    protected final DefaultColumn column = new DefaultColumn();
     protected boolean primaryKey = false;
-    protected boolean autoIncrement = false;
 
     public ManualPropBuilder() {
         this(new ManualImmutablePropImpl());
@@ -35,8 +36,16 @@ public class ManualPropBuilder<SELF extends ManualPropBuilder<SELF>> {
         return self();
     }
 
+    /**
+     * auto-increment on id
+     *
+     * @return the current instance
+     */
     public SELF autoIncrement() {
-        this.autoIncrement = true;
+        if (generatedValue == null) {
+            generatedValue = new DefaultGeneratedValue();
+            addAnnotation(generatedValue);
+        }
         return self();
     }
 
@@ -50,6 +59,17 @@ public class ManualPropBuilder<SELF extends ManualPropBuilder<SELF>> {
     public SELF name(String name) {
         prop.name = name;
         prop.id = PropId.byName(name);
+        return self();
+    }
+
+    /**
+     * set the column name without sneaking
+     *
+     * @param columnName the column name
+     * @return the current instance
+     */
+    public SELF columnName(String columnName) {
+        column.name = columnName;
         return self();
     }
 

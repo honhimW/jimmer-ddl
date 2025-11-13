@@ -3,6 +3,7 @@ package io.github.honhimw.jddl;
 import io.github.honhimw.jddl.column.ColumnModifier;
 import io.github.honhimw.jddl.column.ColumnResolver;
 import io.github.honhimw.jddl.dialect.DDLDialect;
+import io.github.honhimw.jddl.dialect.DDLDialectContext;
 import io.github.honhimw.jddl.model.Modify0Table;
 import io.github.honhimw.jddl.model.Modify1Table;
 import io.github.honhimw.jddl.model.NameTable;
@@ -53,7 +54,7 @@ public abstract class AbstractRealDBTests extends AbstractDDLTest {
             .setConnectionManager(connectionManager)
             .setSqlFormatter(SqlFormatter.PRETTY)
         );
-        SchemaCreator schemaCreator = new SchemaCreator(sqlClient, DatabaseVersion.LATEST);
+        SchemaCreator schemaCreator = new SchemaCreator(sqlClient);
         schemaCreator.init();
         List<Table<?>> tables = new ArrayList<>();
         tables.add(Tables.AUTHOR_TABLE);
@@ -101,7 +102,7 @@ public abstract class AbstractRealDBTests extends AbstractDDLTest {
             .setConnectionManager(connectionManager)
             .setSqlFormatter(SqlFormatter.PRETTY)
         );
-        SchemaCreator schemaCreator = new SchemaCreator(sqlClient, DatabaseVersion.LATEST);
+        SchemaCreator schemaCreator = new SchemaCreator(sqlClient);
         schemaCreator.init();
 
         List<Table<?>> tables = new ArrayList<>();
@@ -109,7 +110,7 @@ public abstract class AbstractRealDBTests extends AbstractDDLTest {
         List<ImmutableType> types = tables.stream().map(TableTypeProvider::getImmutableType).collect(Collectors.toList());
         try (DDLAutoRunner ddlAutoRunner = new DDLAutoRunner(sqlClient, DDLAuto.CREATE_DROP, types)) {
             ddlAutoRunner.create();
-            DDLDialect ddlDialect = DDLDialect.of(dialect(), DatabaseVersion.LATEST);
+            DDLDialect ddlDialect = DDLDialect.of(dialect());
             String tableName = Modify0Table.$.getImmutableType().getTableName(sqlClient.getMetadataStrategy());
             ImmutableProp name0 = Modify0Table.NAME0.unwrap();
             ColumnModifier columnModifier = ColumnModifier.of(ddlDialect, tableName, DDLUtils.getName(name0, sqlClient.getMetadataStrategy()));
@@ -139,7 +140,7 @@ public abstract class AbstractRealDBTests extends AbstractDDLTest {
             .setConnectionManager(connectionManager)
             .setSqlFormatter(SqlFormatter.PRETTY)
         );
-        SchemaCreator schemaCreator = new SchemaCreator(sqlClient, DatabaseVersion.LATEST);
+        SchemaCreator schemaCreator = new SchemaCreator(sqlClient);
         schemaCreator.init();
 
         sqlClient.getConnectionManager().execute(connection -> {

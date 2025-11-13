@@ -1,8 +1,6 @@
 package io.github.honhimw.jddl.dialect;
 
 import io.github.honhimw.jddl.DDLUtils;
-import io.github.honhimw.jddl.DatabaseVersion;
-import org.babyfish.jimmer.sql.dialect.Dialect;
 import org.babyfish.jimmer.sql.dialect.MySqlDialect;
 
 import static java.sql.Types.*;
@@ -14,15 +12,11 @@ import static java.sql.Types.*;
 public class MariaDBDDLDialect extends DefaultDDLDialect {
 
     public MariaDBDDLDialect() {
-        this(null);
+        this(DDLDialectContext.of(new MySqlDialect()));
     }
 
-    public MariaDBDDLDialect(final DatabaseVersion version) {
-        this(new MySqlDialect(), version);
-    }
-
-    public MariaDBDDLDialect(final Dialect dialect, final DatabaseVersion version) {
-        super(dialect, version);
+    public MariaDBDDLDialect(final DDLDialectContext ctx) {
+        super(ctx);
     }
 
     @Override

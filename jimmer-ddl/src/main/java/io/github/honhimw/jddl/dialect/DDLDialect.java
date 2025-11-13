@@ -1,8 +1,7 @@
 package io.github.honhimw.jddl.dialect;
 
-import io.github.honhimw.jddl.DatabaseVersion;
 import org.babyfish.jimmer.sql.EnumType;
-import org.babyfish.jimmer.sql.dialect.*;
+import org.babyfish.jimmer.sql.dialect.Dialect;
 import org.jspecify.annotations.Nullable;
 
 import java.sql.Types;
@@ -15,25 +14,8 @@ import java.util.UUID;
 
 public interface DDLDialect extends Dialect {
 
-    static DDLDialect of(Dialect dialect, @Nullable DatabaseVersion version) {
-        if (dialect instanceof DDLDialect) {
-            return (DDLDialect) dialect;
-        } else if (dialect instanceof H2Dialect) {
-            return new H2DDLDialect(version);
-        } else if (dialect instanceof MySqlDialect) {
-            return new MySqlDDLDialect(version);
-        } else if (dialect instanceof PostgresDialect) {
-            return new PostgresDDLDialect(version);
-        } else if (dialect instanceof OracleDialect) {
-            return new OracleDDLDialect(version);
-        } else if (dialect instanceof SqlServerDialect) {
-            return new SqlServerDDLDialect(version);
-        } else if (dialect instanceof SQLiteDialect) {
-            return new SQLiteDDLDialect(version);
-        } else if (dialect instanceof TiDBDialect) {
-            return new TiDBDDLDialect(version);
-        }
-        throw new IllegalArgumentException("Unsupported Dialect: " + dialect);
+    static DDLDialect of(Dialect dialect) {
+        return DDLDialectContext.of(dialect).select();
     }
 
     default char openQuote() {
@@ -55,14 +37,14 @@ public interface DDLDialect extends Dialect {
         if (name == null) {
             return null;
         }
-        if (name.charAt(0) == openQuote()) {
+        if (name.charAt(0) == openQuote() && name.charAt(name.length() - 1) == closeQuote()) {
             return name;
         }
         if (name.charAt(0) == '`') {
-            return openQuote() + name.substring(1, name.length() - 1) + closeQuote();
+            return toQuotedIdentifier(name.substring(1));
         }
-        if (name.chars().anyMatch(Character::isWhitespace)) {
-            return openQuote() + name + closeQuote();
+        if (preferQuoted() || name.chars().anyMatch(Character::isWhitespace)) {
+            return toQuotedIdentifier(name);
         } else {
             return name;
         }
@@ -72,9 +54,10 @@ public interface DDLDialect extends Dialect {
         if (name == null) {
             return null;
         }
-
         return openQuote() + name + closeQuote();
     }
+
+    boolean preferQuoted();
 
     default boolean hasDataTypeInIdentityColumn() {
         return true;

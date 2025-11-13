@@ -1,7 +1,6 @@
 package io.github.honhimw.jddl.dialect;
 
 import io.github.honhimw.jddl.DDLUtils;
-import io.github.honhimw.jddl.DatabaseVersion;
 import org.babyfish.jimmer.sql.dialect.OracleDialect;
 
 import static java.sql.Types.*;
@@ -13,11 +12,11 @@ import static java.sql.Types.*;
 public class OracleDDLDialect extends DefaultDDLDialect {
 
     public OracleDDLDialect() {
-        this(null);
+        this(DDLDialectContext.of(new OracleDialect()));
     }
 
-    public OracleDDLDialect(final DatabaseVersion version) {
-        super(new OracleDialect(), version);
+    public OracleDDLDialect(final DDLDialectContext ctx) {
+        super(ctx);
     }
 
     @Override

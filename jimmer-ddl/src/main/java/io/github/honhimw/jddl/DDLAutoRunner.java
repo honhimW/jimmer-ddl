@@ -1,12 +1,13 @@
 package io.github.honhimw.jddl;
 
+import io.github.honhimw.jddl.dialect.DDLDialectContext;
 import org.babyfish.jimmer.meta.ImmutableProp;
 import org.babyfish.jimmer.meta.ImmutableType;
+import org.babyfish.jimmer.sql.dialect.DefaultDialect;
 import org.babyfish.jimmer.sql.runtime.JSqlClientImplementor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -28,7 +29,7 @@ public class DDLAutoRunner implements AutoCloseable {
 
     private final List<ImmutableType> types;
 
-    private DatabaseVersion databaseVersion = DatabaseVersion.LATEST;
+    private DDLDialectContext ctx;
 
     private SchemaValidator.Schemas schemas = SchemaValidator.Schemas.EMPTY;
 
@@ -38,6 +39,7 @@ public class DDLAutoRunner implements AutoCloseable {
         this.client = client;
         this.ddlAuto = ddlAuto;
         this.types = new ArrayList<>(types);
+        this.ctx = DDLDialectContext.of(client.getDialect());
     }
 
     public DDLAutoRunner logger(Logger logger) {
@@ -47,13 +49,22 @@ public class DDLAutoRunner implements AutoCloseable {
 
     public void init() {
         SchemaValidator schemaValidator = new SchemaValidator(client);
-        this.databaseVersion = schemaValidator.getDatabaseVersion();
+        this.ctx = DDLDialectContext.builder()
+            .dialect(client.getDialect())
+            .version(schemaValidator.getDatabaseVersion())
+            .build();
+        this.schemas = schemaValidator.load(types);
+    }
+
+    public void init(DDLDialectContext ctx) {
+        SchemaValidator schemaValidator = new SchemaValidator(client);
+        this.ctx = ctx;
         this.schemas = schemaValidator.load(types);
     }
 
     public void create() {
         if (!types.isEmpty()) {
-            SchemaCreator schemaCreator = new SchemaCreator(client, databaseVersion);
+            SchemaCreator schemaCreator = new SchemaCreator(client, ctx);
             schemaCreator.init();
             switch (ddlAuto) {
                 case CREATE:
@@ -70,7 +81,7 @@ public class DDLAutoRunner implements AutoCloseable {
     public void drop() {
         Collections.reverse(types);
         if (!types.isEmpty()) {
-            SchemaCreator schemaCreator = new SchemaCreator(client, databaseVersion);
+            SchemaCreator schemaCreator = new SchemaCreator(client, ctx);
             schemaCreator.init();
             switch (ddlAuto) {
                 case DROP:
@@ -132,7 +143,7 @@ public class DDLAutoRunner implements AutoCloseable {
                 nonExistsProps.add(immutableProp);
             });
             if (!nonExistsProps.isEmpty()) {
-                StandardAddColumnExporter standardAddColumnExporter = new StandardAddColumnExporter(client, databaseVersion);
+                StandardAddColumnExporter standardAddColumnExporter = new StandardAddColumnExporter(client, ctx);
                 for (ImmutableProp nonExistsProp : nonExistsProps) {
                     List<String> sqlCreateStrings = standardAddColumnExporter.getSqlCreateStrings(nonExistsProp);
                     sqlAddColumnStrings.addAll(sqlCreateStrings);

@@ -3,6 +3,7 @@ package io.github.honhimw.jddl;
 import io.github.honhimw.jddl.anno.*;
 import io.github.honhimw.jddl.column.ColumnResolver;
 import io.github.honhimw.jddl.dialect.DDLDialect;
+import io.github.honhimw.jddl.dialect.DDLDialectContext;
 import org.babyfish.jimmer.meta.EmbeddedLevel;
 import org.babyfish.jimmer.meta.ImmutableProp;
 import org.babyfish.jimmer.meta.ImmutableType;
@@ -34,12 +35,16 @@ public class StandardTableExporter implements Exporter<ImmutableType> {
     public StandardTableExporter(JSqlClientImplementor client) {
         this.client = client;
         DatabaseVersion databaseVersion = DDLUtils.getDatabaseVersion(client);
-        this.dialect = DDLDialect.of(client.getDialect(), databaseVersion);
+        this.dialect = DDLDialectContext.builder()
+            .dialect(client.getDialect())
+            .version(databaseVersion)
+            .build()
+            .select();
     }
 
-    public StandardTableExporter(JSqlClientImplementor client, DatabaseVersion version) {
+    public StandardTableExporter(JSqlClientImplementor client, DDLDialectContext ctx) {
         this.client = client;
-        this.dialect = DDLDialect.of(client.getDialect(), version);
+        this.dialect = ctx.select();
     }
 
     @Override

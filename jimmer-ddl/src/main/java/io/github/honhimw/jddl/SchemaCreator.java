@@ -1,6 +1,8 @@
 package io.github.honhimw.jddl;
 
 import io.github.honhimw.jddl.anno.*;
+import io.github.honhimw.jddl.dialect.DDLDialectContext;
+import io.github.honhimw.jman.DefaultGeneratedValue;
 import io.github.honhimw.jman.ManualImmutablePropImpl;
 import io.github.honhimw.jman.ManualImmutableTypeImpl;
 import org.babyfish.jimmer.meta.ImmutableProp;
@@ -27,7 +29,7 @@ public class SchemaCreator implements Exporter<@NonNull Collection<ImmutableType
 
     private final JSqlClientImplementor client;
 
-    private DatabaseVersion version;
+    private DDLDialectContext ctx;
 
     private StandardTableExporter standardTableExporter;
 
@@ -39,21 +41,32 @@ public class SchemaCreator implements Exporter<@NonNull Collection<ImmutableType
         this(client, null);
     }
 
-    public SchemaCreator(@NonNull JSqlClientImplementor client, DatabaseVersion version) {
+    public SchemaCreator(@NonNull JSqlClientImplementor client, DDLDialectContext ctx) {
         this.client = client;
-        this.version = version;
+        this.ctx = ctx;
     }
 
     /**
      * do get database meta-data
      */
     public void init() {
-        if (version == null) {
-            version = DDLUtils.getDatabaseVersion(client);
+        if (ctx == null) {
+            DatabaseVersion version = DDLUtils.getDatabaseVersion(client);
+            ctx = DDLDialectContext.builder()
+                .dialect(client.getDialect())
+                .version(version)
+                .build();
         }
-        standardTableExporter = new StandardTableExporter(client, version);
-        standardForeignKeyExporter = new StandardForeignKeyExporter(client, version);
-        standardSequenceExporter = new StandardSequenceExporter(client, version);
+        standardTableExporter = new StandardTableExporter(client, ctx);
+        standardForeignKeyExporter = new StandardForeignKeyExporter(client, ctx);
+        standardSequenceExporter = new StandardSequenceExporter(client, ctx);
+    }
+
+    public void init(DDLDialectContext ctx) {
+        this.ctx = ctx;
+        standardTableExporter = new StandardTableExporter(client, ctx);
+        standardForeignKeyExporter = new StandardForeignKeyExporter(client, ctx);
+        standardSequenceExporter = new StandardSequenceExporter(client, ctx);
     }
 
     @Override
@@ -177,7 +190,7 @@ public class SchemaCreator implements Exporter<@NonNull Collection<ImmutableType
                                 id.returnClass = Integer.TYPE;
                                 id.isId = true;
                                 id.isColumnDefinition = true;
-                                id.annotations = new Annotation[]{new DDLUtils.DefaultGeneratedValue()};
+                                id.annotations = new Annotation[]{new DefaultGeneratedValue()};
                                 fakeImmutableType.props.put(id.name, id);
                                 fakeImmutableType.idProp = id;
                                 props = fakeImmutableType.props;
@@ -185,7 +198,7 @@ public class SchemaCreator implements Exporter<@NonNull Collection<ImmutableType
                                 id.returnClass = Object.class;
                                 id.isId = true;
                                 id.isColumnDefinition = false;
-                                id.annotations = new Annotation[]{new DDLUtils.DefaultGeneratedValue()};
+                                id.annotations = new Annotation[]{new DefaultGeneratedValue()};
                                 id.isEmbedded = true;
                                 ManualImmutableTypeImpl embeddedIdType = new ManualImmutableTypeImpl();
                                 id.targetType = embeddedIdType;
