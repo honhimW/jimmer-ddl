@@ -13,6 +13,10 @@ gradlePlugin {
             id 'io.github.honhimw.library'
             implementationClass 'io.github.honhimw.LibraryPlugin'
         }
+        create('publishPlugin') {
+            id 'io.github.honhimw.publish'
+            implementationClass 'io.github.honhimw.PublishCfgPlugin'
+        }
     }
 }
 

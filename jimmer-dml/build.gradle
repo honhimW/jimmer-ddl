@@ -1,3 +1,7 @@
+plugins {
+    id 'io.github.honhimw.publish'
+}
+
 version = '0.3.0'
 description = 'dynamic dml generator for jimmer'
 
