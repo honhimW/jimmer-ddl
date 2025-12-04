@@ -10,10 +10,50 @@
 
 ```groovy
 // Gradle
-implementation 'io.github.honhimw:jimmer-ddl:0.0.7'
+implementation 'io.github.honhimw:jimmer-ddl:0.3.0'
 ```
 
 ### Quick start
+
+#### Minimal Example
+```java
+void main() {
+    JSqlClientImplementor sqlClient = (JSqlClientImplementor) JSqlClient.newBuilder()
+        // configure the client
+        .build();
+    List<ImmutableType> types = new ArrayList<>();
+    // add ImmutableTypes that need to be generated into ddl
+    types.add(BookTable.$.getImmutableType());
+    types.add(AuthorTable.$.getImmutableType());
+    
+    DDLAutoRunner ddlAutoRunner = new DDLAutoRunner(
+        sqlClient,
+        DDLAuto.CREATE_DROP, // NONE, CREATE_DROP, CREATE, UPDATE
+        types
+    );
+    // lazy initialize
+    ddlAutoRunner.init();
+    // generate create statements, then execute.
+    // generally called on application startup.
+    // e.g.
+    // - @PostConstruct
+    // - SmartInitializingSingleton#afterSingletonsInstantiated
+    // - Lifecycle#start
+    // - InitializingBean#afterPropertiesSet
+    autoRunner.create(); 
+    // generate drop statements, then execute.
+    // generally called on application shutdown.
+    // e.g.
+    // - @PreDestroy
+    // - Lifecycle#stop
+    // - shutdown-hook
+    autoRunner.drop();
+}
+```
+
+#### SchemaCreator
+
+> generate ddl-statements(no execution)
 
 ```java
 JSqlClientImplementor client;
@@ -30,18 +70,6 @@ List<String> sqlCreateStrings = schemaCreator.getSqlCreateStrings(types);
 // drop sql statements
 Collections.reverse(types);
 List<String> sqlDropStrings = schemaCreator.getSqlDropStrings(types);
-```
-
-### Auto Runner
-```java
-DDLAutoRunner autoRunner = new DDLAutoRunner(client, DDLAuto.CREATE_DROP, types)；
-autoRunner.init();
-
-// on application start-up
-autoRunner.create();
-
-// on application destroy
-autoRunner.drop();
 ```
 
 ### Example with annotations

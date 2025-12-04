@@ -23,7 +23,7 @@ class PublishCfgPlugin implements Plugin<Project> {
             it.pom { pom ->
                 pom.name.set project.name
                 pom.description.set project.description
-                pom.url.set 'https://github.com/honhimW/jimmer-ddl'
+                pom.url.set 'https://github.com/honhimW/jimmer-playground'
                 pom.licenses { licenses ->
                     licenses.license { license ->
                         license.name.set 'The Apache License, Version 2.0'
@@ -40,9 +40,9 @@ class PublishCfgPlugin implements Plugin<Project> {
                     }
                 }
                 pom.scm { scm ->
-                    scm.url.set 'https://github.com/honhimW/jimmer-ddl'
-                    scm.connection.set 'scm:git:git://github.com/honhimW/jimmer-ddl.git'
-                    scm.developerConnection.set 'scm:git:ssh://github.com/honhimW/jimmer-ddl.git'
+                    scm.url.set 'https://github.com/honhimW/jimmer-playground'
+                    scm.connection.set 'scm:git:git://github.com/honhimW/jimmer-playground.git'
+                    scm.developerConnection.set 'scm:git:ssh://github.com/honhimW/jimmer-playground.git'
                 }
             }
         }
